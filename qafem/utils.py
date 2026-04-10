@@ -8,9 +8,11 @@ def generate_erdos_renyi_graph(n, p, device="cpu", seed=0):
 
 
 def expected_cut(W, p):
-    return ((p @ W) * (1 - p)).sum(dim=1)
+    # p @ W gives each node's weighted neighbour sum; multiply by (1-p) for cut expectation
+    return torch.einsum('bi,ij,bj->b', p, W, 1 - p)
 
 
 def discrete_cut(W, s):
-    quad = ((s @ W) * s).sum(dim=1)
+    # cut = 1/4 * (sum_ij W_ij - sum_ij W_ij s_i s_j)
+    quad = torch.einsum('bi,ij,bj->b', s, W, s)
     return 0.25 * (W.sum() - quad)

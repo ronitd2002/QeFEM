@@ -142,7 +142,9 @@ def run_experiment(
         gamma_max=gamma_max,
         gamma_min=gamma_min,
         gamma_steps=gamma_steps,
-        beta_q=beta_q,
+        beta_q_min=beta_q,
+        beta_q_max=beta_q,
+        beta_q_schedule="fixed",
         lr_a=lr_a,
         lr_theta=lr_theta,
         device=device,
@@ -192,6 +194,12 @@ def run_experiment(
             else:
                 print("✗ Neither stage found the global optimum.")
         print("=" * 48)
+        # Improvement 3: quantum stage diagnostics
+        qh = quantum.history
+        print("\nQuantum stage diagnostics (final step):")
+        print(f"  |rx| mean : {qh['rx_mean'][-1]:.4f}  (~0 = collapsed to classical, no quantum effect)")
+        print(f"  S_vN mean : {qh['S_vN_mean'][-1]:.4f}  (~0 = fully decided spins)")
+        print(f"  U0 mean   : {qh['U0_mean'][-1]:.4f}  (Ising energy)")
 
     # --- Plot ---
     plot_experiment_stages(
