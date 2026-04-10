@@ -1,5 +1,5 @@
 import torch
-from math import log
+from math import log, sqrt  # sqrt used in gamma sqrt schedule
 
 
 def entropy_binary(p):
@@ -25,6 +25,33 @@ def make_beta_schedule(beta_min, beta_max, steps, kind, device):
     raise ValueError(f"Unknown beta schedule: {kind}. Use inverse | geometric")
 
 
+def make_gamma_schedule(gamma_max, gamma_min, steps, kind, device):
+    """
+    Gamma(t) schedules for the quantum stage transverse field.
+
+    kind:
+      linear  — linearly decays gamma_max -> gamma_min (DEFAULT)
+                Simple and sufficient for a variational optimizer.
+                The functional form between steps has no derivable
+                physical consequence here since we are doing gradient
+                descent, not solving the Schrodinger equation.
+
+      sqrt    — c/sqrt(t) decay, inspired by Kadowaki & Nishimori 1998.
+                Decays faster early, slower late. Try this if linear
+                gives a quantum stage that collapses too quickly.
+                Normalised so Gamma(steps) == gamma_min automatically.
+    """
+    if kind == "linear":
+        return torch.linspace(gamma_max, gamma_min, steps, device=device)
+
+    if kind == "sqrt":
+        t = torch.arange(1, steps + 1, dtype=torch.float32, device=device)
+        c = gamma_min * sqrt(steps)
+        return (c / torch.sqrt(t)).clamp(gamma_min, gamma_max)
+
+    raise ValueError(f"Unknown gamma schedule: {kind}. Use linear | sqrt")
+
+
 class QAFEMSolver:
     def __init__(
         self,
@@ -33,13 +60,14 @@ class QAFEMSolver:
         beta_min=1e-2,
         beta_max=40.0,
         beta_steps=300,
-        beta_schedule="inverse",     # inverse | geometric
+        beta_schedule="inverse",      # inverse | geometric
         gamma_max=1.5,
         gamma_min=0.0,
         gamma_steps=200,
-        beta_q_min=None,             # quantum stage beta; defaults to beta_max (fixed)
+        gamma_schedule="linear",      # linear (default) | sqrt
+        beta_q_min=None,              # quantum stage beta; defaults to beta_max (fixed)
         beta_q_max=None,
-        beta_q_schedule="fixed",     # fixed | geometric | inverse
+        beta_q_schedule="fixed",      # fixed | geometric | inverse
         lr=0.04,
         device="cpu",
         seed=0
@@ -50,12 +78,13 @@ class QAFEMSolver:
         self.seed = seed
         self.lr = lr
 
-        # Classical beta schedule (improvement 2a)
         self.betas = make_beta_schedule(beta_min, beta_max, beta_steps, beta_schedule, device)
 
-        self.gammas = torch.linspace(gamma_max, gamma_min, gamma_steps, device=device)
+        # KN98 Gamma schedule (sqrt default = their main positive result)
+        self.gammas = make_gamma_schedule(
+            gamma_max, gamma_min, gamma_steps, gamma_schedule, device
+        )
 
-        # Independent quantum beta schedule (improvement 2b)
         bq_min = beta_q_min if beta_q_min is not None else beta_max
         bq_max = beta_q_max if beta_q_max is not None else beta_max
         if beta_q_schedule == "fixed" or bq_min == bq_max:
