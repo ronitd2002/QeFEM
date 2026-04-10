@@ -1,3 +1,4 @@
+import time
 import torch
 from math import log, sqrt  # sqrt used in gamma sqrt schedule
 
@@ -69,6 +70,8 @@ class QAFEMSolver:
         beta_q_max=None,
         beta_q_schedule="fixed",      # fixed | geometric | inverse
         lr=0.04,
+        lr_a=None,
+        lr_theta=None,
         device="cpu",
         seed=0
     ):
@@ -77,6 +80,8 @@ class QAFEMSolver:
         self.device = device
         self.seed = seed
         self.lr = lr
+        self.lr_a = lr_a if lr_a is not None else lr
+        self.lr_theta = lr_theta if lr_theta is not None else lr
 
         self.betas = make_beta_schedule(beta_min, beta_max, beta_steps, beta_schedule, device)
 
@@ -130,11 +135,14 @@ class QAFEMSolver:
             torch.ones_like(mz) * torch.pi
         ).detach().clone().requires_grad_(True)
 
-        opt = torch.optim.Adam([a_raw, theta], lr=self.lr)
+        opt = torch.optim.Adam([
+            {"params": [a_raw], "lr": self.lr_a},
+            {"params": [theta], "lr": self.lr_theta},
+        ])
 
         # Improvement 3: track all three free energy components
         self.quantum_history = {"gamma": [], "cut_mean": [], "cut_max": [],
-                                 "U_mean": [], "rx_mean": [], "S_mean": []}
+                                 "U0_mean": [], "rx_mean": [], "S_vN_mean": []}
 
         for gamma, beta_q in zip(self.gammas, self.beta_qs):
             a = torch.sigmoid(a_raw)
@@ -163,9 +171,9 @@ class QAFEMSolver:
                 self.quantum_history["gamma"].append(float(gamma.item()))
                 self.quantum_history["cut_mean"].append(float(cut_exp.mean().item()))
                 self.quantum_history["cut_max"].append(float(cut_exp.max().item()))
-                self.quantum_history["U_mean"].append(float(U.mean().item()))
+                self.quantum_history["U0_mean"].append(float(U.mean().item()))
                 self.quantum_history["rx_mean"].append(float(rx.abs().mean().item()))
-                self.quantum_history["S_mean"].append(float(S.mean().item()))
+                self.quantum_history["S_vN_mean"].append(float(S.mean().item()))
 
         a = torch.sigmoid(a_raw)
         rz = a * torch.cos(theta)
@@ -179,10 +187,22 @@ class QAFEMSolver:
         spins_c, cut_c = self.problem.inference(p_classical)
         spins_q, cut_q = self.problem.inference(p_quantum)
 
+        best_classical_idx = int(cut_c.argmax().item())
+        best_quantum_idx = int(cut_q.argmax().item())
+
         return {
-            "classical_cut": cut_c.max().item(),
-            "quantum_cut": cut_q.max().item(),
-            "gain": (cut_q.max() - cut_c.max()).item(),
-            # Improvement 3: expose diagnostics so experiment layer can inspect them
+            "p_classical": p_classical.detach(),
+            "p_quantum": p_quantum.detach(),
+            "best_classical_p": p_classical[best_classical_idx].detach(),
+            "best_quantum_p": p_quantum[best_quantum_idx].detach(),
+            "spins_classical": spins_c.detach(),
+            "spins_quantum": spins_q.detach(),
+            "best_spins_classical": spins_c[best_classical_idx].detach(),
+            "best_spins_quantum": spins_q[best_quantum_idx].detach(),
+            "cut_classical_all": cut_c.detach(),
+            "cut_quantum_all": cut_q.detach(),
+            "best_classical_cut": float(cut_c[best_classical_idx].item()),
+            "best_quantum_cut": float(cut_q[best_quantum_idx].item()),
+            "gain": float(cut_q[best_quantum_idx].item() - cut_c[best_classical_idx].item()),
             "quantum_history": self.quantum_history,
         }

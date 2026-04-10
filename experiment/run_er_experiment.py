@@ -7,7 +7,7 @@
 #   5. Print results + save plot
 #
 # Usage:
-#   python -m experiments.run_er_experiment
+#   python -m experiment.run_er_experiment
 # or import run_experiment() and call it from a sweep script.
 
 import time
@@ -16,13 +16,9 @@ from typing import Optional
 
 import torch
 
-from core.solver import (
-    get_device,
-    generate_erdos_renyi_graph,
-    run_classical_fem_stage,
-    run_quantum_linear_stage,
-)
-from experiments.plotting import build_nx_layout, plot_experiment_stages
+from qafem.interface import QAFEM
+from qafem.utils import get_device, generate_erdos_renyi_graph
+from experiment.plotting import build_nx_layout, plot_experiment_stages
 
 
 # ---------------------------
@@ -115,47 +111,39 @@ def run_experiment(
     # Show replica 0 — representative of "before any optimisation"
     p_init_vis = p_init_all[0].detach().cpu()
 
-    # --- Classical stage ---
-    t0 = time.perf_counter()
-    classical = run_classical_fem_stage(
-        W=W,
-        replicas=replicas,
+    # --- Run QAFEM pipeline ---
+    qa = QAFEM.from_couplings(
+        W,
+        num_trials=replicas,
         beta_min=beta_min,
         beta_max=beta_max,
         beta_steps=beta_steps,
-        lr=lr_classical,
-        seed=solver_seed,
-        device=device,
-    )
-    t_classical = time.perf_counter() - t0
-
-    best_c = classical.best_replica
-    p_classical_vis = classical.p[best_c].detach().cpu()
-    spins_classical = classical.spins[best_c].detach().cpu()
-    cut_classical = float(classical.cut_discrete[best_c].item())
-
-    # --- Quantum stage ---
-    t1 = time.perf_counter()
-    quantum = run_quantum_linear_stage(
-        W=W,
-        p_init=classical.p,
+        beta_schedule="inverse",
         gamma_max=gamma_max,
         gamma_min=gamma_min,
         gamma_steps=gamma_steps,
+        gamma_schedule="linear",
         beta_q_min=beta_q,
         beta_q_max=beta_q,
         beta_q_schedule="fixed",
+        lr=lr_classical,
         lr_a=lr_a,
         lr_theta=lr_theta,
         device=device,
+        seed=solver_seed,
     )
-    t_quantum = time.perf_counter() - t1
-    t_total = t_classical + t_quantum
+    result = qa.solve()
+    t_total = result["t_classical"] + result["t_quantum"]
+    t_classical = result["t_classical"]
+    t_quantum = result["t_quantum"]
 
-    best_q = quantum.best_replica
-    p_quantum_vis = quantum.rho_prob[best_q].detach().cpu()
-    spins_quantum = quantum.spins[best_q].detach().cpu()
-    cut_quantum = float(quantum.cut_discrete[best_q].item())
+    p_classical_vis = result["best_classical_p"].detach().cpu()
+    spins_classical = result["best_spins_classical"].detach().cpu()
+    cut_classical = float(result["best_classical_cut"])
+
+    p_quantum_vis = result["best_quantum_p"].detach().cpu()
+    spins_quantum = result["best_spins_quantum"].detach().cpu()
+    cut_quantum = float(result["best_quantum_cut"])
 
     # --- Brute-force verification ---
     exact_cut = acc_c = acc_q = optimal_found = None
@@ -195,7 +183,7 @@ def run_experiment(
                 print("✗ Neither stage found the global optimum.")
         print("=" * 48)
         # Improvement 3: quantum stage diagnostics
-        qh = quantum.history
+        qh = result["quantum_history"]
         print("\nQuantum stage diagnostics (final step):")
         print(f"  |rx| mean : {qh['rx_mean'][-1]:.4f}  (~0 = collapsed to classical, no quantum effect)")
         print(f"  S_vN mean : {qh['S_vN_mean'][-1]:.4f}  (~0 = fully decided spins)")
