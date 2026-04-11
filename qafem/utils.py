@@ -1,10 +1,17 @@
 import torch
 
-def generate_erdos_renyi_graph(n, p, device="cpu", seed=0):
+def generate_erdos_renyi_graph(n, edge_prob, weight_mode="ones", device="cpu", seed=0):
     torch.manual_seed(seed)
-    mask = torch.triu((torch.rand(n, n, device=device) < p).float(), diagonal=1)
+    mask = torch.triu((torch.rand(n, n, device=device) < edge_prob).float(), diagonal=1)
     W = mask + mask.T
-    return W
+    if weight_mode == "ones":
+        return W
+    if weight_mode == "uniform":
+        weights = 0.5 + torch.rand(n, n, device=device)
+        weights = torch.triu(weights, diagonal=1)
+        weights = weights + weights.T
+        return W * weights
+    raise ValueError(f"Unknown weight_mode: {weight_mode}. Use ones | uniform")
 
 
 def get_device():

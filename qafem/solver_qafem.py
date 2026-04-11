@@ -1,6 +1,6 @@
-import time
 import torch
 from math import log, sqrt  # sqrt used in gamma sqrt schedule
+from .utils import expected_cut
 
 
 def entropy_binary(p):
@@ -85,7 +85,7 @@ class QAFEMSolver:
 
         self.betas = make_beta_schedule(beta_min, beta_max, beta_steps, beta_schedule, device)
 
-        # KN98 Gamma schedule (sqrt default = their main positive result)
+        # Gamma schedule — linear default, sqrt available for comparison
         self.gammas = make_gamma_schedule(
             gamma_max, gamma_min, gamma_steps, gamma_schedule, device
         )
@@ -166,7 +166,6 @@ class QAFEMSolver:
 
             with torch.no_grad():
                 p_q = ((1 + rz) / 2).clamp(0.0, 1.0)
-                from .utils import expected_cut
                 cut_exp = expected_cut(self.problem.W, p_q)
                 self.quantum_history["gamma"].append(float(gamma.item()))
                 self.quantum_history["cut_mean"].append(float(cut_exp.mean().item()))

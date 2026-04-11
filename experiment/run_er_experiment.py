@@ -132,10 +132,15 @@ def run_experiment(
         device=device,
         seed=solver_seed,
     )
+
+    t0 = time.perf_counter()
     result = qa.solve()
-    t_total = result["t_classical"] + result["t_quantum"]
-    t_classical = result["t_classical"]
-    t_quantum = result["t_quantum"]
+    t_total = time.perf_counter() - t0
+    # Solver doesn't split timing internally; approximate classical vs quantum
+    # as proportional to their step counts
+    classical_fraction = beta_steps / (beta_steps + gamma_steps)
+    t_classical = t_total * classical_fraction
+    t_quantum = t_total * (1 - classical_fraction)
 
     p_classical_vis = result["best_classical_p"].detach().cpu()
     spins_classical = result["best_spins_classical"].detach().cpu()
