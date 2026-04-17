@@ -102,11 +102,12 @@ class QAFEMSolver:
 
         N = self.problem.W.shape[0]
 
-        h = 1e-3 * torch.randn(
+        h = torch.randn(
             (self.num_trials, N),
             device=self.device,
-            requires_grad=True
+            dtype=torch.float32,
         )
+        h = (1e-3 * h).requires_grad_()
 
         opt = torch.optim.Adam([h], lr=self.lr)
 

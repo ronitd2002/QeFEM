@@ -137,8 +137,12 @@ def run_experiment(
     result = qa.solve()
     t_total = time.perf_counter() - t0
     # Solver doesn't split timing internally; approximate classical vs quantum
-    # as proportional to their step counts
-    classical_fraction = beta_steps / (beta_steps + gamma_steps)
+    # as proportional to their step counts. If quantum is disabled, treat
+    # the entire run as classical.
+    if beta_steps + gamma_steps > 0:
+        classical_fraction = beta_steps / (beta_steps + gamma_steps)
+    else:
+        classical_fraction = 1.0
     t_classical = t_total * classical_fraction
     t_quantum = t_total * (1 - classical_fraction)
 
@@ -189,12 +193,17 @@ def run_experiment(
         print("=" * 48)
         # Improvement 3: quantum stage diagnostics
         qh = result["quantum_history"]
-        print("\nQuantum stage diagnostics (final step):")
-        print(f"  |rx| mean : {qh['rx_mean'][-1]:.4f}  (~0 = collapsed to classical, no quantum effect)")
-        print(f"  S_vN mean : {qh['S_vN_mean'][-1]:.4f}  (~0 = fully decided spins)")
-        print(f"  U0 mean   : {qh['U0_mean'][-1]:.4f}  (Ising energy)")
+        if qh["gamma"]:
+            print("\nQuantum stage diagnostics (final step):")
+            print(f"  |rx| mean : {qh['rx_mean'][-1]:.4f}  (~0 = collapsed to classical, no quantum effect)")
+            print(f"  S_vN mean : {qh['S_vN_mean'][-1]:.4f}  (~0 = fully decided spins)")
+            print(f"  U0 mean   : {qh['U0_mean'][-1]:.4f}  (Ising energy)")
+        else:
+            print("\nQuantum stage diagnostics skipped: no quantum stage was run.")
 
     # --- Plot ---
+    import os
+    os.makedirs(os.path.dirname(save_path) or '.', exist_ok=True)
     plot_experiment_stages(
         G=G, pos=pos,
         p_init=p_init_vis,
