@@ -114,12 +114,18 @@ def plot_experiment_stages(
     if exact_cut is not None:
         footer = (
             f"Exact = {exact_cut:.4f}  |  "
-            f"Classical {acc_classical*100:.1f}%  |  "
-            f"Quantum {acc_quantum*100:.1f}%"
+            f"Classical {acc_classical*100:.1f}% ({t_classical:.2f}s)  |  "
+            f"Quantum {acc_quantum*100:.1f}% ({t_quantum:.2f}s)"
         )
         fig.text(0.5, 0.01, footer, ha="center", fontsize=9,
                  bbox=dict(boxstyle="round", fc="lightyellow", ec="gray", alpha=0.8))
 
-    plt.tight_layout(rect=[0, 0.05, 1, 1])
+    # Add partition text
+    partition_classical = spins_classical.detach().cpu().numpy().astype(int)
+    partition_quantum = spins_quantum.detach().cpu().numpy().astype(int)
+    axes[1].text(0.5, -0.15, f"Partition: {partition_classical}", ha="center", va="top", transform=axes[1].transAxes, fontsize=6)
+    axes[2].text(0.5, -0.15, f"Partition: {partition_quantum}", ha="center", va="top", transform=axes[2].transAxes, fontsize=6)
+
+    plt.tight_layout(rect=[0, 0.08, 1, 1])  # adjust rect to make space for text
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     return fig

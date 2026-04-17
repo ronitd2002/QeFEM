@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from .utils import expected_cut, discrete_cut
 
 class MaxCutProblem:
@@ -9,8 +10,10 @@ class MaxCutProblem:
         return -expected_cut(self.W, p)
 
     def inference(self, p):
-        spins = torch.where(p >= 0.5, torch.ones_like(p), -torch.ones_like(p))
-        cut = discrete_cut(self.W, spins)
+        config = (p > 0.5).long()
+        s = F.one_hot(config, num_classes=2).float()
+        cut = ((self.W @ s) * (1 - s)).sum((1, 2)) / 2
+        spins = config.float()  # 0 or 1
         return spins, cut
 
     def quantum_energy(self, rz):

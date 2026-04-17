@@ -1,25 +1,26 @@
 import torch
 
 def generate_erdos_renyi_graph(n, edge_prob, weight_mode="ones", device="cpu", seed=0):
-    torch.manual_seed(seed)
-    mask = torch.triu((torch.rand(n, n, device=device) < edge_prob).float(), diagonal=1)
+    import numpy as np
+    np.random.seed(seed)
+    mask = np.triu((np.random.rand(n, n) < edge_prob).astype(np.float32), k=1)
     W = mask + mask.T
+    W = torch.tensor(W, device=device)
     if weight_mode == "ones":
         return W
     if weight_mode == "uniform":
-        weights = 0.5 + torch.rand(n, n, device=device)
-        weights = torch.triu(weights, diagonal=1)
+        np.random.seed(seed + 1)  # different seed for weights
+        weights = 0.5 + np.random.rand(n, n)
+        weights = np.triu(weights, k=1)
         weights = weights + weights.T
+        weights = torch.tensor(weights, device=device)
         return W * weights
     raise ValueError(f"Unknown weight_mode: {weight_mode}. Use ones | uniform")
 
 
 def get_device():
-    if torch.backends.mps.is_available():
-        return "mps"
-    if torch.cuda.is_available():
-        return "cuda"
-    return "cpu"
+    # return "mps" if torch.backends.mps.is_available() else "cpu"
+    return "cpu"  # to match notebook
 
 
 def expected_cut(W, p):

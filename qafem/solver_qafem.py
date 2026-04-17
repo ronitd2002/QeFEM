@@ -3,8 +3,13 @@ from math import log, sqrt  # sqrt used in gamma sqrt schedule
 from .utils import expected_cut
 
 
-def entropy_binary(p):
-    return - (p * torch.log(p) + (1 - p) * torch.log(1 - p)).sum(1)
+def entropy_potts(p):
+    return - (p * p.log()).sum(2).sum(1)
+
+
+def cut(W, p):
+    # W: (n,n), p: (batch,n,q)
+    return ((W @ p) * (1 - p)).sum((1, 2))
 
 
 def entropy_grad_binary(p):
@@ -16,14 +21,17 @@ def make_beta_schedule(beta_min, beta_max, steps, kind, device):
     kind:
       inverse    — beta = 1/T, T linearly spaced Tmax->Tmin (DEFAULT)
                    paper's primary 'inverse-proportional scheduling'
+      linear     — beta linearly spaced beta_min->beta_max
       geometric  — log-spaced beta (paper 'exponential scheduling')
     """
     if kind == "inverse":
         T = torch.linspace(1.0 / beta_min, 1.0 / beta_max, steps, device=device)
         return 1.0 / T
+    if kind == "linear":
+        return torch.linspace(beta_min, beta_max, steps, device=device)
     if kind == "geometric":
         return torch.logspace(log(beta_min, 10), log(beta_max, 10), steps, device=device)
-    raise ValueError(f"Unknown beta schedule: {kind}. Use inverse | geometric")
+    raise ValueError(f"Unknown beta schedule: {kind}. Use inverse | linear | geometric")
 
 
 def make_gamma_schedule(gamma_max, gamma_min, steps, kind, device):
@@ -102,25 +110,25 @@ class QAFEMSolver:
 
         N = self.problem.W.shape[0]
 
-        h = torch.randn(
-            (self.num_trials, N),
+        h = torch.rand(
+            (self.num_trials, N, 2),
             device=self.device,
             dtype=torch.float32,
-        )
-        h = (1e-3 * h).requires_grad_()
+        ).requires_grad_()
 
         opt = torch.optim.Adam([h], lr=self.lr)
 
         for beta in self.betas:
-            p = torch.sigmoid(h)
-
-            F = self.problem.expectation(p) - entropy_binary(p) / beta
+            p_full = torch.softmax(h, dim=2)
+            p = p_full[:, :, 1]  # prob of state 1
+            F = -cut(self.problem.W, p_full) - entropy_potts(p_full) / beta
 
             opt.zero_grad()
-            F.mean().backward()
+            F.backward(torch.ones_like(F))
             opt.step()
 
-        return torch.sigmoid(h)
+        p_full = torch.softmax(h, dim=2)
+        return p_full[:, :, 1]
 
     def quantum_stage(self, p_init):
         eps = 1e-4

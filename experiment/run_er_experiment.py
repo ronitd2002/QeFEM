@@ -76,6 +76,7 @@ def run_experiment(
     beta_min: float = 1e-2,
     beta_max: float = 40.0,
     beta_steps: int = 300,
+    beta_schedule: str = "inverse",
     lr_classical: float = 0.04,
     # Solver — quantum
     gamma_max: float = 1.5,
@@ -118,7 +119,7 @@ def run_experiment(
         beta_min=beta_min,
         beta_max=beta_max,
         beta_steps=beta_steps,
-        beta_schedule="inverse",
+        beta_schedule=beta_schedule,
         gamma_max=gamma_max,
         gamma_min=gamma_min,
         gamma_steps=gamma_steps,

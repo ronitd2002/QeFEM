@@ -34,24 +34,6 @@ def draw_cut(G, x, seed=42):
     nx.draw(G, pos, with_labels=True, node_color=node_colors, edge_color=edge_colors, width=2)
     plt.show()
 
-G = random_binary_undirected_graph(n_nodes=20, edge_prob=0.2, seed=1)
-W = graph_to_binary_adjacency(G)
-
-# --- device ---
-device = "mps" if torch.backends.mps.is_available() else "cpu"
-
-# --- graph ---
-W = torch.tensor(W, dtype=torch.float32).to(device)
-
-# --- hyperparameters ---
-batch = 64
-q = 2
-n = W.shape[0]
-beta_range = torch.linspace(0.5, 20.0, steps=200).to(device)
-
-# --- learnable fields ---
-h = torch.nn.Parameter(torch.rand(batch, n, q, device=device))
-
 def cut(W, p):
     # W: (n,n), p: (batch,n,q)
     return ((W @ p) * (1 - p)).sum((1, 2))
@@ -85,6 +67,24 @@ def solve_maxcut(W, batch=64, lr=0.01, steps=200):
     p_final = torch.softmax(h, dim=2)
     config, cutvals = argmax_cut(W, p_final)
     return config, cutvals, p_final, h.detach()
+
+G = random_binary_undirected_graph(n_nodes=20, edge_prob=0.2, seed=1)
+W = graph_to_binary_adjacency(G)
+
+# --- device ---
+device = "mps" if torch.backends.mps.is_available() else "cpu"
+
+# --- graph ---
+W = torch.tensor(W, dtype=torch.float32).to(device)
+
+# --- hyperparameters ---
+batch = 64
+q = 2
+n = W.shape[0]
+beta_range = torch.linspace(0.5, 20.0, steps=200).to(device)
+
+# --- learnable fields ---
+h = torch.nn.Parameter(torch.rand(batch, n, q, device=device))
 
 # solve
 config, cutvals, p, h_final = solve_maxcut(W, batch=64, steps=500)
