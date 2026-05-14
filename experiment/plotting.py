@@ -123,9 +123,9 @@ def plot_experiment_stages(
     # Add partition text
     partition_classical = spins_classical.detach().cpu().numpy().astype(int)
     partition_quantum = spins_quantum.detach().cpu().numpy().astype(int)
-    axes[1].text(0.5, -0.15, f"Partition: {partition_classical}", ha="center", va="top", transform=axes[1].transAxes, fontsize=6)
-    axes[2].text(0.5, -0.15, f"Partition: {partition_quantum}", ha="center", va="top", transform=axes[2].transAxes, fontsize=6)
+    axes[1].text(0.5, -0.2, f"Partition: {partition_classical}", ha="center", va="top", transform=axes[1].transAxes, fontsize=5)
+    axes[2].text(0.5, -0.2, f"Partition: {partition_quantum}", ha="center", va="top", transform=axes[2].transAxes, fontsize=5)
 
-    plt.tight_layout(rect=[0, 0.08, 1, 1])  # adjust rect to make space for text
+    plt.tight_layout(rect=[0, 0.12, 1, 1])  # adjust rect to make more space for text
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     return fig
