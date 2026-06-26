@@ -1,0 +1,2 @@
+instance,nodes,edges,mode,gamma_mode,gamma_max,gamma_min,n_steps,replicas,seed,lr,beta_min,beta_max,best_cut,best_value,gap,percent_accuracy,best_step,best_replica,runtime_sec,vanilla_cut,vanilla_gap,vanilla_percent_accuracy,vanilla_runtime_sec,delta_cut_vs_vanilla,delta_gap_vs_vanilla,delta_accuracy_vs_vanilla,runtime_ratio_vs_vanilla
+G38,2000,11779,qefem_anneal,anneal,1.0,0.0,1000,128,0,0.01,2.0,12500.0,7616.0,7688,72.0,99.06347554630594,424,113,28.457915782928467,7514.0,174.0,97.73673257023934,8.672926902770996,102.0,102.0,1.3267429760665976,3.2812355162172735
