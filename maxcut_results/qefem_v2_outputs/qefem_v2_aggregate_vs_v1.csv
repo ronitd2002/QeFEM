@@ -1,0 +1,3 @@
+method,completed_graphs,wins_vs_v1,ties_vs_v1,losses_vs_v1,win_rate_percent,non_loss_rate_percent,mean_delta_vs_v1,min_delta_vs_v1,max_delta_vs_v1,mean_accuracy_percent,gap_zero_count
+raw_qefem,21,10,6,5,47.61904761904762,76.19047619047619,0.9523809523809523,-15.0,9.0,99.25257381633546,1
+polished_qefem,21,10,6,5,47.61904761904762,76.19047619047619,0.9523809523809523,-15.0,9.0,99.25257381633546,1
