@@ -1,0 +1,4 @@
+graph_type,storage_mode,graphs,raw_wins,raw_ties,raw_losses,raw_mean_delta,polished_wins,polished_ties,polished_losses,polished_mean_delta
+plain,dense,8,1,4,3,-0.5,1,4,3,-0.5
+random,dense,10,8,0,2,2.2,8,0,2,2.2
+toroidal,dense,3,1,2,0,0.6666666666666666,1,2,0,0.6666666666666666

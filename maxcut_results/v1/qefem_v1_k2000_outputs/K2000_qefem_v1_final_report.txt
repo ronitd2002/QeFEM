@@ -1,0 +1,105 @@
+================================================================================
+K2000 QEFEM v1 FINAL REPORT
+================================================================================
+
+INSTANCE
+--------------------------------------------------------------------------------
+Instance                 : K2000
+N                        : 2000
+M                        : 1999000
+Best-known cut           : 33337
+W_sum                    : -2080.0
+Positive edges           : 998980
+Negative edges           : 1000020
+
+SCHEDULES AND SETTINGS
+--------------------------------------------------------------------------------
+Replicas                 : 128
+Steps                    : 1000
+Seed                     : 4
+Tmax                     : 1.16
+Tmin                     : 6e-05
+Beta min                 : 0.8620690107345581
+Beta max                 : 16666.66796875
+Gamma anneal             : 1.0 -> 0.0
+R init                   : 0.01
+Theta center             : 1.5707963267948966
+Theta noise              : 0.001
+
+OBJECTIVE
+--------------------------------------------------------------------------------
+QEFEM minimizes:
+F = -E[C] - gamma * sum_i rx_i - S_Q / beta
+
+Expected MaxCut:
+E[C] = 1/4 * (W.sum() - rz^T W rz)
+
+Hard readout:
+s_i = sign(rz_i)
+C(s) = 1/4 * (W.sum() - s^T W s)
+
+Quantum entropy:
+lambda_plus  = (1 + R_i) / 2
+lambda_minus = (1 - R_i) / 2
+S_Q = -sum_i [lambda_plus log(lambda_plus) + lambda_minus log(lambda_minus)]
+
+VANILLA BASELINES
+--------------------------------------------------------------------------------
+Vanilla Adam cut         : 29906
+Vanilla Adam gap         : 3431
+Vanilla Adam accuracy    : 89.708132%
+Vanilla Adam runtime     : 4.196436 sec
+
+Vanilla RMSprop cut      : 32954
+Vanilla RMSprop gap      : 383
+Vanilla RMSprop accuracy : 98.851126%
+Vanilla RMSprop runtime  : 4.064090 sec
+
+ALL RESULTS, SORTED BY CUT
+--------------------------------------------------------------------------------
+Rank 1: QEFEM_Adam_gamma_anneal | cut=32981 | gap=356 | accuracy=98.932117% | runtime=21.430938s | delta_vs_vanilla_RMSprop=27
+Rank 2: vanilla_RMSprop | cut=32954 | gap=383 | accuracy=98.851126% | runtime=4.064090s | delta_vs_vanilla_RMSprop=0
+Rank 3: QEFEM_RMSprop_gamma_anneal | cut=31106 | gap=2231 | accuracy=93.307736% | runtime=8.185935s | delta_vs_vanilla_RMSprop=-1848
+Rank 4: QEFEM_gamma0_Adam | cut=30657 | gap=2680 | accuracy=91.960884% | runtime=14.497133s | delta_vs_vanilla_RMSprop=-2297
+Rank 5: vanilla_Adam | cut=29906 | gap=3431 | accuracy=89.708132% | runtime=4.196436s | delta_vs_vanilla_RMSprop=-3048
+
+BEST OVERALL METHOD
+--------------------------------------------------------------------------------
+Method                   : QEFEM_Adam_gamma_anneal
+Cut                      : 32981
+Gap                      : 356
+Accuracy                 : 98.932117%
+Runtime                  : 21.430938 sec
+Delta vs vanilla Adam    : 3075
+Delta vs vanilla RMSprop : 27
+
+BEST QEFEM METHOD
+--------------------------------------------------------------------------------
+Method                   : QEFEM_Adam_gamma_anneal
+Optimizer                : Adam
+Gamma schedule           : 1.0 -> 0.0
+Cut                      : 32981
+Gap                      : 356
+Accuracy                 : 98.932117%
+Runtime                  : 21.430938 sec
+Best step                : 600.0
+Best replica             : 47.0
+Delta vs vanilla Adam    : 3075
+Delta vs vanilla RMSprop : 27
+
+VERDICT
+--------------------------------------------------------------------------------
+QEFEM beats vanilla Adam?    : True
+QEFEM beats vanilla RMSprop? : True
+Verdict: Strong-baseline pass. QEFEM beat or matched vanilla RMSprop.
+
+FILES WRITTEN
+--------------------------------------------------------------------------------
+Master comparison CSV    : /Users/ronit/Desktop/QeFEM/main/maxcut_results/qefem_v1_k2000_outputs/K2000_qefem_v1_master_comparison.csv
+Gamma=0 history CSV      : /Users/ronit/Desktop/QeFEM/main/maxcut_results/qefem_v1_k2000_outputs/K2000_qefem_gamma0_adam_history.csv
+Adam anneal history CSV  : /Users/ronit/Desktop/QeFEM/main/maxcut_results/qefem_v1_k2000_outputs/K2000_qefem_adam_gamma_anneal_history.csv
+RMS anneal history CSV   : /Users/ronit/Desktop/QeFEM/main/maxcut_results/qefem_v1_k2000_outputs/K2000_qefem_rmsprop_gamma_anneal_history.csv
+
+================================================================================
+END OF REPORT
+================================================================================

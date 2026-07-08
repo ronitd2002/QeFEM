@@ -1,0 +1,2 @@
+partition,graph,N,M,best_known_cut,qefem_best_cut,gap,accuracy_percent,best_step,best_replica,replicas,steps,optimizer,lr,runtime_sec
+17,G66,9000,18000,6364.0,6228.0,136.0,97.8629792583281,400,95,128,1000,Adam,0.01,42.96684122085571

@@ -1,2 +1,0 @@
-instance,mode,replicas,n_steps,seed,optimizer,lr,gamma_max,gamma_min,best_cut,best_known,gap,accuracy_percent,best_step,best_replica,runtime_sec,delta_cut_vs_vanilla_adam,delta_cut_vs_vanilla_rmsprop,delta_cut_vs_previous_qefem_r128_adam,delta_cut_vs_best_known
-K2000,qefem_paper_scale_adam_gamma_anneal,1000,1000,4,Adam,0.01,1.0,0.0,33049.0,33337,288.0,99.13609502954675,750,338,48.230639934539795,3143.0,95.0,68.0,-288.0
