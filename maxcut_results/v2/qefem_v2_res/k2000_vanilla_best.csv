@@ -1,0 +1,3 @@
+graph_name,cut_value,gap
+vanilla_Adam,29906.0,3431.0
+vanilla_RMSprop,32954.0,383.0
