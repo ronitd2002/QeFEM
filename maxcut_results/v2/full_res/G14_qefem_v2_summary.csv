@@ -1,0 +1,2 @@
+graph_name,optimizer,grad_type,best_cut,best_known_cut,gap,gap_percent,accuracy,accuracy_percent,success,best_outer_rep,best_replica,best_step,n_batch,n_rep_requested,n_rep_completed,n_steps,total_replica_attempts_completed,T_max,T_min,beta_schedule,gamma_max,gamma_min,gamma_schedule,lr,grad_clip,elapsed_sec
+G14,adam,auto,3044.0,3064.0,20.0,0.6527415143603134,0.9934725848563969,99.34725848563968,False,0,582,826,10000,1,1,2000,10000,0.5,8e-05,linear_temperature,1.0,0.001,linear,0.01,1.0,432.16025710105896
