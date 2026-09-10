@@ -20,7 +20,6 @@ The exact instances and random seeds used for the corresponding figures in the L
 | `generation_source/coupling.py` | Shared tensor edge-list definition used by the existing modules | Only for importing the generator modules |
 | `generation_source/requirements-generation.txt` | Python dependencies for importing the existing modules | Only for regeneration |
 | `SHA256SUMS.txt` | File-integrity manifest | Recommended |
-| `EMAIL_DRAFT.txt` | Suggested covering email | No |
 
 The ZIP does contain the local LQA implementation in `generation_source/local_lqa.py`. It is included because the existing `wishart_generator.py` imports it at module load time and combines two responsibilities in one source file:
 
