@@ -1,0 +1,12 @@
+{
+  "complete_cases": 22,
+  "created_utc": "2026-09-21T11:11:32.662632+00:00",
+  "gset_endpoints": 71,
+  "gset_trajectories": 29,
+  "note": "No raw candidate populations were copied; the paper workspace contains only endpoints, compact trajectories, settings, and reports.",
+  "source_roots": [
+    "/Users/ronit/Desktop/QeFEM/main/da_trajectory_reproduction/cases",
+    "/Users/ronit/Desktop/QeFEM/main/da_family_reproduction/cases",
+    "/Users/ronit/Desktop/QeFEM/main/maxcut_results/v2"
+  ]
+}

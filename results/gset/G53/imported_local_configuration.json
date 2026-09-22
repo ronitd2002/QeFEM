@@ -1,0 +1,11 @@
+{
+  "graph": "G53",
+  "learning_rate": 0.01,
+  "optimizer": "Adam",
+  "provenance": "older local Adam baseline; not Feng-tuned",
+  "replicas": 128,
+  "seed": 0,
+  "source_summary": "/Users/ronit/Desktop/QeFEM/main/maxcut_results/v2/qefem_anneal_G1_G54_final_results.csv",
+  "source_summary_sha256": "48ded62fa3a45e03fa66a72e17ef9b07561a20a151b0bfb9d6e6076e033632ca",
+  "steps": 1000
+}

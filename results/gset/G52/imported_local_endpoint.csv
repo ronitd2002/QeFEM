@@ -1,0 +1,2 @@
+graph,topology,vertices,edges,reference_cut,best_cut,gap,seed,replicas,steps,optimizer,learning_rate,runtime_sec,provenance
+G52,planar,1000,5916,3851.0,3825.0,26.0,0,128,1000,Adam,0.01,21.412781715393063,older local Adam baseline; not Feng-tuned

@@ -1,0 +1,18 @@
+graph,topology,vertices,edges,reference_cut,best_cut,gap,seed,replicas,steps,optimizer,learning_rate,runtime_sec,provenance
+G55,G55+,5000,12498,10299.0,10195.0,104.0,,128,1000,Adam,0.01,13.877591133117676,older local Adam baseline; not Feng-tuned
+G56,G55+,5000,12498,4017.0,3915.0,102.0,,128,1000,Adam,0.01,15.026528120040894,older local Adam baseline; not Feng-tuned
+G57,G55+,5000,10000,3494.0,3428.0,66.0,,128,1000,Adam,0.01,12.622632265090942,older local Adam baseline; not Feng-tuned
+G58,G55+,5000,29570,19293.0,19084.0,209.0,,128,1000,Adam,0.01,21.10778784751892,older local Adam baseline; not Feng-tuned
+G59,G55+,5000,29570,6086.0,5856.0,230.0,,128,1000,Adam,0.01,20.48904013633728,older local Adam baseline; not Feng-tuned
+G60,G55+,7000,17148,14188.0,14037.0,151.0,,128,1000,Adam,0.01,21.746036291122437,older local Adam baseline; not Feng-tuned
+G61,G55+,7000,17148,5796.0,5642.0,154.0,,128,1000,Adam,0.01,32.743162870407104,older local Adam baseline; not Feng-tuned
+G62,G55+,7000,14000,4870.0,4790.0,80.0,,128,1000,Adam,0.01,33.24478721618652,older local Adam baseline; not Feng-tuned
+G63,G55+,7000,41459,27047.0,26753.0,294.0,,128,1000,Adam,0.01,56.3808650970459,older local Adam baseline; not Feng-tuned
+G64,G55+,7000,41459,8751.0,8415.0,336.0,,128,1000,Adam,0.01,57.947059869766235,older local Adam baseline; not Feng-tuned
+G65,G55+,8000,16000,5562.0,5448.0,114.0,,128,1000,Adam,0.01,38.94234132766723,older local Adam baseline; not Feng-tuned
+G66,G55+,9000,18000,6364.0,6228.0,136.0,,128,1000,Adam,0.01,42.96684122085571,older local Adam baseline; not Feng-tuned
+G67,G55+,10000,20000,6950.0,6806.0,144.0,,128,1000,Adam,0.01,51.01760506629944,older local Adam baseline; not Feng-tuned
+G70,G55+,10000,9999,9591.0,9412.0,179.0,,128,1000,Adam,0.01,36.53248476982117,older local Adam baseline; not Feng-tuned
+G72,G55+,10000,20000,7008.0,6860.0,148.0,,128,1000,Adam,0.01,56.81682801246643,older local Adam baseline; not Feng-tuned
+G77,G55+,14000,28000,9940.0,9722.0,218.0,,128,1000,Adam,0.01,62.78851628303528,older local Adam baseline; not Feng-tuned
+G81,G55+,20000,40000,14060.0,13716.0,344.0,,128,1000,Adam,0.01,84.62415480613708,older local Adam baseline; not Feng-tuned

@@ -1,0 +1,50 @@
+{
+  "config": {
+    "coupling_scale": "rms",
+    "gamma_end_fraction": 1.0,
+    "gamma_max": 1.0,
+    "gamma_min": 0.0,
+    "gamma_power": 1.0,
+    "gamma_schedule": "lin",
+    "h_factor": 0.05,
+    "initialization": "cpu",
+    "learning_rate": 7.0,
+    "optimizer": "sgd",
+    "optimizer_kwargs": {
+      "foreach": false,
+      "momentum": 0.95,
+      "weight_decay": 0.01
+    },
+    "replicas": 4096,
+    "steps": 2000,
+    "storage": "csr",
+    "temperature_end_fraction": 1.0,
+    "temperature_max": 2.0,
+    "temperature_min": 0.0001,
+    "temperature_power": 2.0,
+    "temperature_schedule": "lin"
+  },
+  "derived_seeds": [
+    637126580,
+    1867935295,
+    1089603792,
+    2854212403,
+    4005736292
+  ],
+  "device": "cpu",
+  "dtype": "float32",
+  "graph": "G47",
+  "instance_sha256": "1e4b6fd99bfa1a14886bf15f49b8f11fc31051660d1a0b629de71ff91cbf8ee5",
+  "plan_job": "G47_evaluate0",
+  "seed_bases": [
+    93000,
+    93001,
+    93002,
+    93003,
+    93004
+  ],
+  "solver": "double",
+  "target": 6657.0,
+  "topology": "random",
+  "trajectory_semantics": "coherent final-winner history from the best local seed"
+}

@@ -1,4 +1,0 @@
-gset# nodes# cut_value best_value gap %_accuracy tts_seconds
-G11 800 526 564 38 93.2624 4.2451
-G12 800 520 556 36 93.5252 4.2281
-G13 800 542 582 40 93.1271 4.1631

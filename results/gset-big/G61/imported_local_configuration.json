@@ -1,0 +1,11 @@
+{
+  "graph": "G61",
+  "learning_rate": 0.01,
+  "optimizer": "Adam",
+  "provenance": "older local Adam baseline; not Feng-tuned",
+  "replicas": 128,
+  "seed": null,
+  "source_summary": "/Users/ronit/Desktop/QeFEM/main/maxcut_results/v2/qefem_g55-g81_summary.csv",
+  "source_summary_sha256": "dabefb34d5a62f905a5315baed61d54a2a50262ac41e3f0603a88975d816cdc5",
+  "steps": 1000
+}

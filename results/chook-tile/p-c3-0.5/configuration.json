@@ -1,0 +1,53 @@
+{
+  "device": "cpu",
+  "dtype": "float32",
+  "family": "chook",
+  "instance": "chook_05",
+  "instance_sha256": "b67db21fb5e0599852186e2c97b66c5505260c67f0e963636856697d3a2fd73a",
+  "lqa_included": true,
+  "parameter": 0.5,
+  "plans": [
+    "/Users/ronit/Desktop/QeFEM/qefem_prof/benchmarks/chunk/results/portable_accuracy_recheck/final_chook_a/plan.json",
+    "/Users/ronit/Desktop/QeFEM/qefem_prof/benchmarks/chunk/results/portable_accuracy_recheck/final_chook_b/plan.json"
+  ],
+  "qefem": {
+    "coupling_scale": 2.91447089966601,
+    "coupling_storage": "dense",
+    "gamma_end_fraction": 1.0,
+    "gamma_max": 1.0,
+    "gamma_min": 0.0,
+    "gamma_power": 1.0,
+    "gamma_schedule": "lin",
+    "h_factor": 0.05,
+    "initialization": "cpu",
+    "learning_rate": 0.03,
+    "optimizer": "rmsprop",
+    "optimizer_kwargs": {
+      "alpha": 0.9,
+      "centered": false,
+      "eps": 1e-08,
+      "foreach": false,
+      "momentum": 0.9,
+      "weight_decay": 0.001
+    },
+    "replicas": 8192,
+    "steps": 500,
+    "temperature_end_fraction": 1.0,
+    "temperature_max": 2.0,
+    "temperature_min": 0.001,
+    "temperature_power": 1.0,
+    "temperature_schedule": "lin"
+  },
+  "seeds": [
+    903741298,
+    2120621032,
+    1804549925,
+    3549923301,
+    233415601,
+    722795232,
+    890685793,
+    1724984041,
+    2836918672,
+    191022785
+  ]
+}

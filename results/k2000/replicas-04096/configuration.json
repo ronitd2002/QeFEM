@@ -1,0 +1,43 @@
+{
+  "device": "cpu",
+  "dtype": "float32",
+  "family": "k2000",
+  "population_semantics": "nested prefix of the same trial population at each seed",
+  "qefem": {
+    "coupling_scale": 44.710177812216315,
+    "coupling_storage": "dense",
+    "gamma_end_fraction": 0.5,
+    "gamma_max": 1.0,
+    "gamma_min": 0.0,
+    "gamma_power": 1.0,
+    "gamma_schedule": "lin",
+    "h_factor": 0.1,
+    "initialization": "cpu",
+    "learning_rate": 0.03,
+    "optimizer": "rmsprop",
+    "optimizer_kwargs": {
+      "alpha": 0.98,
+      "centered": false,
+      "eps": 1e-08,
+      "foreach": false,
+      "momentum": 0.91,
+      "weight_decay": 0.01
+    },
+    "replicas": 4096,
+    "steps": 1000,
+    "temperature_end_fraction": 1.0,
+    "temperature_max": 1.0,
+    "temperature_min": 0.0001,
+    "temperature_power": 1.0,
+    "temperature_schedule": "lin"
+  },
+  "replicas": 4096,
+  "seeds": [
+    3371835386,
+    3700479728,
+    1934420243,
+    716463040,
+    424211264
+  ],
+  "target": 33337.0
+}

@@ -1,0 +1,50 @@
+{
+  "case": "wishart_02",
+  "device": "cpu",
+  "dtype": "float32",
+  "family": "wishart",
+  "instance_sha256": "d4a7d2cc173832a977e570256fb00013afc8c4e0b03223fa3e841c75fc4de13f",
+  "lqa_included": false,
+  "parameter": 0.3,
+  "provenance": {
+    "exact_reference_energy": true,
+    "kind": "imported validated local run",
+    "source_git_revision": "b14f73c53305b55242b418ef2013fba0ac3cce54",
+    "source_result": "/Users/ronit/Desktop/QeFEM/main/da_trajectory_reproduction/cases/wishart_02/result.json",
+    "source_result_sha256": "e07c6e9bfb99be041369590694442d9460035dc09c80f4d9d82db33bbd5b0a81",
+    "source_trajectory": "/Users/ronit/Desktop/QeFEM/main/da_trajectory_reproduction/cases/wishart_02/trajectory.csv",
+    "source_trajectory_sha256": "9d750e3883f7015629277380ffa849eee77f47a06966217f33d077a153ecebc9",
+    "two_pass_replay_exact": true
+  },
+  "qefem": {
+    "coupling_scale": 0.5503315633280335,
+    "coupling_storage": "dense",
+    "gamma_end_fraction": 0.5,
+    "gamma_max": 0.3,
+    "gamma_min": 0.0,
+    "gamma_power": 1.0,
+    "gamma_schedule": "lin",
+    "h_factor": 0.1,
+    "initialization": "cpu",
+    "learning_rate": 0.03,
+    "optimizer": "rmsprop",
+    "optimizer_kwargs": {
+      "alpha": 0.56,
+      "centered": false,
+      "eps": 1e-08,
+      "foreach": false,
+      "momentum": 0.63,
+      "weight_decay": 0.013
+    },
+    "replicas": 8192,
+    "steps": 500,
+    "temperature_end_fraction": 1.0,
+    "temperature_max": 1.0,
+    "temperature_min": 0.0001,
+    "temperature_power": 1.0,
+    "temperature_schedule": "lin"
+  },
+  "seeds": [
+    2327127638
+  ]
+}

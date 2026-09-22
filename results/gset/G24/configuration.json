@@ -1,0 +1,57 @@
+{
+  "config": {
+    "coupling_scale": "rms",
+    "discretization_end": 0.775742008870721,
+    "discretization_max": 1.0,
+    "discretization_start": 0.575742008870721,
+    "gamma_end_fraction": 1.0,
+    "gamma_max": 0.32353655765828704,
+    "gamma_min": 0.0,
+    "gamma_power": 1.0,
+    "gamma_schedule": "lin",
+    "gradient_mode": "manual_discrete",
+    "h_factor": 0.05,
+    "initialization": "cpu",
+    "learning_rate": 5.890656264062353,
+    "optimizer": "sgd",
+    "optimizer_kwargs": {
+      "foreach": false,
+      "momentum": 0.95,
+      "weight_decay": 0.01
+    },
+    "replicas": 4096,
+    "spectral_schedule": {
+      "cooling_power": 2.6311281259157204,
+      "kappa": 2.0247360472250104,
+      "q_end": 0.0001,
+      "q_start": 1.25,
+      "rho_end_fraction": 0.9320933917884615,
+      "rho_start": 0.12853680999813524
+    },
+    "steps": 4000,
+    "temperature_end_fraction": 1.0,
+    "temperature_max": 2.5170731844284977,
+    "temperature_min": 0.00020247360472250105,
+    "temperature_power": 1.0,
+    "temperature_schedule": "lin"
+  },
+  "derived_seeds": [
+    3087790036,
+    2086330866,
+    4046858924
+  ],
+  "device": "cpu",
+  "dtype": "float32",
+  "graph": "G24",
+  "instance_sha256": "9aff2abd74d14eb04ed991f8fe202931b874f5faf5477c51179e1095f1649939",
+  "plan_job": "G24_refine05",
+  "seed_bases": [
+    96200,
+    96201,
+    96202
+  ],
+  "solver": "double",
+  "target": 13337.0,
+  "topology": "random",
+  "trajectory_semantics": "coherent final-winner history from the best local seed"
+}

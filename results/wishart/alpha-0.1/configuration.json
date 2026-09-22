@@ -1,0 +1,47 @@
+{
+  "device": "cpu",
+  "dtype": "float32",
+  "family": "wishart",
+  "instance": "wishart_00",
+  "instance_sha256": "eb2cf61cec15e71d6d5d29e10546ed4710f301f348d0bfb57c349666159c2e79",
+  "lqa_included": true,
+  "parameter": 0.1,
+  "plans": [
+    "/Users/ronit/Desktop/QeFEM/qefem_prof/benchmarks/wishart/results/portable_accuracy_recheck/final_wishart/plan.json"
+  ],
+  "qefem": {
+    "coupling_scale": 0.31659844207881055,
+    "coupling_storage": "dense",
+    "gamma_end_fraction": 0.5,
+    "gamma_max": 0.3,
+    "gamma_min": 0.0,
+    "gamma_power": 1.0,
+    "gamma_schedule": "lin",
+    "h_factor": 0.1,
+    "initialization": "cpu",
+    "learning_rate": 0.03,
+    "optimizer": "rmsprop",
+    "optimizer_kwargs": {
+      "alpha": 0.56,
+      "centered": false,
+      "eps": 1e-08,
+      "foreach": false,
+      "momentum": 0.63,
+      "weight_decay": 0.013
+    },
+    "replicas": 8192,
+    "steps": 500,
+    "temperature_end_fraction": 1.0,
+    "temperature_max": 1.0,
+    "temperature_min": 0.0001,
+    "temperature_power": 1.0,
+    "temperature_schedule": "lin"
+  },
+  "seeds": [
+    3289218920,
+    3345798870,
+    92671970,
+    1497625350,
+    773775888
+  ]
+}

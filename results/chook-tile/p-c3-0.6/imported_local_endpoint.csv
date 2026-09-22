@@ -1,0 +1,2 @@
+method,trial,seed,energy,cut,gap,relative_error,ground_hit,target_hit,best_replica,runtime_sec
+qefem,0,862309687,-1720.0,,,0.0,True,,2135,147.0092318749994
