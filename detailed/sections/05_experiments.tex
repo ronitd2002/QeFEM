@@ -1,0 +1,181 @@
+\section{Experimental material and evaluation protocol}
+\label{sec:experiments}
+
+\subsection{Instance families and reference values}
+
+The saved evidence covers two MaxCut families and two planted Ising
+families. G-set
+G1--G54 consists of 54 MaxCut graphs with varied size and topology; the
+supplied target file serves as the versioned cut reference
+\citep{yeGset}. K2000 is a complete signed 2,000-vertex graph with
+$2{,}000\times1{,}999/2=1{,}999{,}000$ undirected edges
+\citep{inagaki2016science}. Its stored target cut is 33,337. A stored
+target is a known-quality comparison value, not in itself a certificate of
+global optimality.
+
+\subsection{Planted data and their construction}
+
+The Wishart bank contains one dense 500-spin instance at each
+$\alpha=M/N\in\{0.1,0.2,\ldots,1.0\}$, with $M=50,100,\ldots,500$.
+Its generator centers $M$ Gaussian columns to make them orthogonal to a
+planted spin direction, forms a zero-diagonal coupling matrix from their
+Gram matrix, and applies a random spin gauge \citep{hamze2020}. The Chook
+bank instead contains one sparse, periodic $32\times32$ lattice at each
+requested $p(C_3)\in\{0.0,0.1,\ldots,1.0\}$. Edge-disjoint local tiles
+are drawn from the $C_2/C_3$ mixture so that a common planted spin
+assignment minimizes their sum; a gauge hides that assignment
+\citep{perera2020}. Each saved file carries its planted spins and energy.
+These are fixed local realizations of the published families, not the
+unpublished matrices used in the cited figures; each plotted parameter
+point describes one file rather than an ensemble average.
+
+\subsection{Scoring and endpoint interpretation}
+
+For a MaxCut candidate, the recorded residual is
+\begin{equation}
+ \Delta_C=C_{\rm ref}-C(\widehat{\bm s}).
+ \label{eq:cutgap}
+\end{equation}
+If $\Delta_C=0$, the stored reference was attained. If a new cut exceeded
+it, the residual would be negative; none of the retained G-set results
+exceeded its supplied references. For planted instances, the recorded
+energy excess and relative error are
+\begin{equation}
+ \Delta_E=E(\widehat{\bm s})-E_0,
+ \qquad
+ \eps=\frac{|E(\widehat{\bm s})-E_0|}{|E_0|}.
+ \label{eq:plantedmetric}
+\end{equation}
+An exact hit means the final rescored energy equals the supplied planted
+energy within the stored benchmark's exact scoring convention. A hit
+\emph{trial} means at least one replica in that trial hits. The number of
+such trials must not be confused with the number of hitting replicas;
+the available compact paper records preserve the winning endpoint and
+trial hit status, not every candidate population for every benchmark.
+
+\subsection{Frozen \QeFEM{} and \LQA{} comparison}
+
+The K2000, Wishart, and Chook experiments use selected, frozen
+family-level configurations from the portable \texttt{qefem\_prof}
+recheck plans. They were chosen after exploratory tuning and therefore
+should be interpreted as evaluations of tuned procedures on the stored
+instances, not as a pristine held-out generalization study. Every
+\QeFEM{} trial evolves 8,192 replicas for the canonical comparison. The
+K2000 and Wishart experiments use five seeded trials per instance; Chook
+combines two predeclared five-seed batches for ten trials per instance.
+The CPU, float32 portable evaluation is recorded with source revision
+\texttt{b14f73c53305b55242b418ef2013fba0ac3cce54} and input hashes.
+
+\begin{table*}[t]
+\centering\small
+\caption{Frozen \QeFEM{} schedules and budgets. A trial includes all
+replicas. The driver reaches zero at fraction $f_\Gamma$ of the run.
+Temperature follows a linear decrease in $T$, not a linear increase in
+$\beta=1/T$.}
+\label{tab:frozen-schedules}
+\begin{tabular}{lrrrrlll}
+\toprule
+Family & updates & replicas & trials & $h_{\rm init}$
+ & $T_{\max}\to T_{\min}$ & $\Gamma_{\max}\to0$ & $f_\Gamma$\\
+\midrule
+K2000 & 1,000 & 8,192 & 5 & 0.10 & $1\to10^{-4}$ & $1\to0$ & 0.50\\
+Wishart & 500 & 8,192 & 5 & 0.10 & $1\to10^{-4}$ & $0.3\to0$ & 0.50\\
+Chook & 500 & 8,192 & 10 & 0.05 & $2\to10^{-3}$ & $1\to0$ & 1.00\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering\small
+\caption{Frozen \QeFEM{} RMSprop parameters. All three use non-centered
+RMSprop, $\eps_{\rm opt}=10^{-8}$, and float32 fields; $\lambda_{\rm wd}$
+is coupled weight decay. The RMS scale is defined in
+Eq.~\eqref{eq:rmscoupling}.}
+\label{tab:frozen-optimizer}
+\begin{tabular}{lrrrrr}
+\toprule
+Family & learning rate $\eta$ & $\alpha$ & momentum $\mu$
+ & $\lambda_{\rm wd}$ & RMS scale $c_K$\\
+\midrule
+K2000 & 0.03 & 0.98 & 0.91 & 0.010 & 44.71018\\
+Wishart & 0.03 & 0.56 & 0.63 & 0.013 & 0.316598\\
+Chook & 0.03 & 0.90 & 0.90 & 0.001 & 3.162278\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+The comparator is an independently implemented \LQA{} run based on the
+classical product-state gradient method of \citet{bowles2022}. Its local
+states are pure and parameterized by one angular variable per spin;
+one trial evolves one such state. The saved runs use Adam with
+$(\beta_1,\beta_2)=(0.9,0.999)$, zero weight decay, and five or ten
+trials matched in count and seed labels to the corresponding \QeFEM{}
+trials. K2000 uses 5,000 updates, learning rate 1, and driver parameter
+$g=0.1$; Wishart and Chook use 500 updates, learning rate 2, and $g=1$.
+The initial range parameter is $f=0.1$. The planted-instance value $g=1$
+is a local benchmark choice, not a value specified in the published
+\LQA{} figure caption. Thus these results compare the declared saved
+implementations; they should not be presented as a reproduction of every
+published \LQA{} setting. Equal trial counts are also not equal state
+counts or equal arithmetic work.
+
+\subsection{G-set: adaptive attainment and fresh-seed confirmation}
+
+The G-set evidence has a different design. An earlier smooth-gradient
+study retained reference cuts on 23 of the 54 graphs. A later search
+revisited only the 31 unmatched instances. Its controller proposed
+seven initial configurations per graph, including transferred spectral
+schedules, exact manual gradients, and hard or gradual discrete-neighbour
+updates. Up to six regional proposals refined a graph when discovery had
+not yet hit its reference. Candidate selection used discovery and
+promotion data; the chosen configuration was frozen before an evaluation
+on new seed bases. The full search record reports 990 trial executions
+and 502,016 replica candidates across discovery, promotion, and frozen
+evaluation, excluding historical effort. Table~\ref{tab:gset-stage}
+specifies the stage budgets.
+
+\begin{table*}[t]
+\centering\small
+\caption{Later G-set search budgets, copied from the completed search
+report. A ``candidate'' is one replica endpoint, not an independent graph
+or a universally tuned hyperparameter.}
+\label{tab:gset-stage}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrl}
+\toprule
+Stage & trials & replica endpoints & per-setting budget\\
+\midrule
+Discovery & 786 & 100,608 & $128\times2$ seeds\\
+Promotion & 124 & 126,976 & $1{,}024\times2$ seeds\\
+Frozen evaluation & 80 & 274,432 & $2{,}048\times2$ or $4{,}096\times3$\\
+\midrule
+Total & 990 & 502,016 & later search only\\
+\bottomrule
+\end{tabular*}
+\end{table*}
+
+The frozen evaluation budget depends on each graph's earlier gap. Graphs
+within two cut units receive 4,096 replicas and three new seeds;
+others receive 2,048 replicas and two. The older 23 hits remain prior
+attainments rather than being rerun as part of this 31-graph search.
+Consequently the cumulative $33/54$ figure describes what has been
+\emph{attained across all saved searches}. It is not an estimate that a
+single frozen universal configuration succeeds on 33 of 54 graphs or
+that a random seed has success probability $33/54$.
+
+\subsection{Reproducibility and the scope of comparisons}
+
+Every frozen endpoint is tied to an instance hash, configuration, seed,
+numerical precision, and device record. The saved paper workspace stores
+endpoint CSVs, selected coherent trajectories, reports, and configuration
+JSON files; full raw candidate populations from earlier runs were not
+copied into it. The G-set search audit independently rescored saved
+populations in its own source workspace. Results shown in the main
+planted comparison use the same fixed instance files for both methods.
+
+We report cut quality, energy error, and exact-hit counts. We do not
+calculate time-to-solution, speedup, or energy efficiency from the mixed
+resource protocols: \QeFEM{} uses thousands of simultaneous states,
+\LQA{} uses one, the G-set search is adaptive, and archived \FEM{}/\dSB{}
+notebook output came from a separate run environment. Within those
+limits, the stored data still support specific, useful conclusions about
+attainable quality and where the current method fails.

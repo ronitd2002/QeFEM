@@ -83,6 +83,10 @@ GSET_COHORTS = {
 }
 GSET_ALL = [f"G{i}" for i in range(1, 55)]
 GSET_BIG = [*(f"G{i}" for i in range(55, 68)), "G70", "G72", "G77", "G81"]
+GSET_REPRESENTATIVE_15 = frozenset({
+    "G10", "G12", "G13", "G18", "G19", "G20", "G21", "G24",
+    "G25", "G46", "G47", "G48", "G49", "G50", "G54",
+})
 K2000_REPLICAS = [128, 512, 1024, 2048, 4096, 8192]
 
 
@@ -651,9 +655,33 @@ def run_gset(
 ) -> pd.DataFrame:
     """Run every G1-G54 graph or every supplied G55+ graph."""
     jobs = _gset_jobs(big)
+    if big and any(int(job["config"]["replicas"]) != 8192 for job in jobs):
+        raise RuntimeError("The selected G55+ plans must all use the highest 8,192-replica setting")
     if smoke:
         jobs = jobs[:1]
     family_folder = RESULTS_ROOT / ("gset-big" if big else "gset")
+    family_folder.mkdir(parents=True, exist_ok=True)
+    if big:
+        settings = []
+        for job in jobs:
+            folder = family_folder / job["instance"]
+            preserved = _complete(folder) and not overwrite
+            recorded = _read_json(folder / "configuration.json") if preserved else None
+            seeds_for_record = recorded["seed_bases"] if recorded else job["seeds"][:1]
+            settings.append({
+                "graph": job["instance"], "plan_job": job["name"],
+                "protocol": "preserved-complete" if preserved else "one-seed endpoint",
+                "steps": job["config"]["steps"], "replicas": job["config"]["replicas"],
+                "seed_bases": ";".join(str(seed) for seed in seeds_for_record),
+                "optimizer": job["config"]["optimizer"],
+                "learning_rate": job["config"]["learning_rate"],
+                "momentum": job["config"]["optimizer_kwargs"].get("momentum"),
+                "weight_decay": job["config"]["optimizer_kwargs"].get("weight_decay"),
+                "gradient_mode": job["config"].get("gradient_mode", "autograd"),
+                "temperature_schedule": job["config"]["temperature_schedule"],
+                "gamma_schedule": job["config"]["gamma_schedule"],
+            })
+        _write_csv(family_folder / "selected_settings.csv", settings)
     all_rows: list[dict[str, Any]] = []
     topology = {name: label for label, names in GSET_COHORTS.items() for name in names}
     for job in jobs:
@@ -666,7 +694,7 @@ def run_gset(
             print(f"{'gset-big' if big else 'gset'}/{name}: complete; skipped")
             continue
         config = json.loads(json.dumps(job["config"]))
-        seeds = list(job["seeds"])
+        seeds = list(job["seeds"][:1] if big else job["seeds"])
         if smoke:
             config["steps"] = 4
             config["replicas"] = 4
@@ -697,15 +725,17 @@ def run_gset(
                 "runtime_sec": time.perf_counter() - started,
             }
             endpoint_rows.append(row)
-            saved[trial] = (seed, inputs, winner)
+            if not big:
+                saved[trial] = (seed, inputs, winner)
         best = max(endpoint_rows, key=lambda row: row["best_cut"])
-        seed, inputs, winner = saved[int(best["trial"])]
-        recorder = QuantumWinnerTrajectory(_gset_score_one(graph), winner)
-        replay_spins = _run_gset_auto(graph, config, inputs, runtime, callback=recorder)
-        replay_cut = float(graph.score(replay_spins)[winner])
-        if replay_cut != best["best_cut"]:
-            raise RuntimeError(f"{name}: deterministic trajectory replay changed the endpoint")
-        _write_csv(folder / "trajectory.csv", recorder.rows)
+        if not big:
+            seed, inputs, winner = saved[int(best["trial"])]
+            recorder = QuantumWinnerTrajectory(_gset_score_one(graph), winner)
+            replay_spins = _run_gset_auto(graph, config, inputs, runtime, callback=recorder)
+            replay_cut = float(graph.score(replay_spins)[winner])
+            if replay_cut != best["best_cut"]:
+                raise RuntimeError(f"{name}: deterministic trajectory replay changed the endpoint")
+            _write_csv(folder / "trajectory.csv", recorder.rows)
         _write_csv(folder / "endpoints.csv", endpoint_rows)
         record = {
             "graph": name, "topology": topology.get(name, "large-supplied"),
@@ -713,7 +743,8 @@ def run_gset(
             "plan_job": job["name"], "solver": job["solver"], "config": config,
             "seed_bases": seeds, "derived_seeds": [row["seed"] for row in endpoint_rows],
             "device": str(runtime.device), "dtype": runtime.dtype_name,
-            "trajectory_semantics": "coherent final-winner history from the best local seed",
+            "trajectory_semantics": ("endpoint-only; one 8,192-replica seed" if big else
+                                     "coherent final-winner history from the best local seed"),
         }
         _write_json(folder / "configuration.json", record)
         lines = [f"# {name} QeFEM endpoint report", "",
@@ -721,9 +752,13 @@ def run_gset(
                  f"- Edges: `{len(graph.w)}`", f"- Reference cut: `{graph.target:g}`",
                  f"- Best local cut: `{best['best_cut']:g}`", f"- Residual: `{best['gap']:g}`",
                  f"- Seeds: `{', '.join(str(s) for s in seeds)}`", "",
-                 "`trajectory.csv` contains only step, discrete cut, reference gap, and entropy for one coherent replica.", ""]
+                 ("One 8,192-replica endpoint run; no trajectory replay." if big else
+                  "`trajectory.csv` contains only step, discrete cut, reference gap, and entropy for one coherent replica."), ""]
         (folder / "report.md").write_text("\n".join(lines))
-        _write_json(folder / "manifest.json", {"status": "complete", "completed_utc": datetime.now(timezone.utc).isoformat()})
+        _write_json(folder / "manifest.json", {
+            "status": "complete", "scope": "endpoint-only" if big else "trajectory",
+            "completed_utc": datetime.now(timezone.utc).isoformat(),
+        })
         all_rows.extend(endpoint_rows)
         print(f"{'gset-big' if big else 'gset'}/{name}: complete")
     frame = pd.DataFrame(all_rows)
@@ -737,7 +772,164 @@ def run_gset(
                  f"Completed graphs: `{len(bests)}`.",
                  f"Reference cuts reached: `{int((bests.min_gap <= 0).sum())}/{len(bests)}`.",
                  f"Median residual: `{bests.min_gap.median():.6g}`.", ""]
+        if big:
+            lines.append("New G55+ cases use one 8,192-replica seed and one endpoint pass. Previously completed cases are preserved; inspect selected_settings.csv for each case's protocol.")
         (family_folder / "report.md").write_text("\n".join(lines))
+    return frame
+
+
+def run_gset_remaining_endpoints(
+    runtime: Runtime, *, preserve_trajectories: Iterable[str],
+) -> pd.DataFrame:
+    """Fill the 39 missing G1-G54 endpoints without rerunning the 15 trajectory cases.
+
+    This uses the current QeFEM solver and the archived per-instance plans.
+    G17 and G28 replay the particular discovery/promotion plans that supplied
+    their hits to the accumulated 33/54 result; the frozen evaluation plans
+    for those two did not themselves reach the reference cuts.
+    """
+    preserved = set(preserve_trajectories)
+    if len(preserved) != 15 or not preserved <= set(GSET_ALL):
+        raise ValueError("Expected exactly 15 distinct G1-G54 trajectory cases")
+    family_folder = RESULTS_ROOT / "gset"
+    for name in sorted(preserved, key=lambda value: int(value[1:])):
+        folder = family_folder / name
+        if not (_complete(folder) and (folder / "endpoints.csv").exists()
+                and (folder / "trajectory.csv").exists()):
+            raise RuntimeError(f"{name}: preserved trajectory case is incomplete")
+
+    jobs = _gset_jobs(False)
+    if len(jobs) != 54 or {job["instance"] for job in jobs} != set(GSET_ALL):
+        raise RuntimeError("Current G-set plan does not cover G1-G54 exactly once")
+    jobs_by_name = {job["instance"]: job for job in jobs}
+    plan_sources = {
+        name: ("remaining_discrete/evaluation" if
+               (REPO_ROOT / f"benchmarks/Gset/results/remaining_discrete/plans/evaluation_{name}.json").exists()
+               else "target_attainment/evaluate")
+        for name in GSET_ALL
+    }
+    special = {
+        "G17": ("refine01.json", "G17_refine01"),
+        "G28": ("promotion_G28.json", "G28_incumbent_exact"),
+    }
+    for name, (filename, candidate) in special.items():
+        path = REPO_ROOT / "benchmarks/Gset/results/remaining_discrete/plans" / filename
+        matches = [job for job in _read_json(path)
+                   if job["instance"] == name and job["name"] == candidate
+                   and job["solver"] == "double"]
+        if len(matches) != 1:
+            raise RuntimeError(f"{name}: historical hit plan is missing or ambiguous")
+        jobs_by_name[name] = matches[0]
+        plan_sources[name] = f"remaining_discrete/{filename}"
+
+    pending = [name for name in GSET_ALL if name not in preserved]
+    if len(pending) != 39:
+        raise RuntimeError("Expected exactly 39 endpoint-only cases")
+    topology = {name: label for label, names in GSET_COHORTS.items() for name in names}
+    settings = []
+    for name in pending:
+        job = jobs_by_name[name]
+        config = job["config"]
+        settings.append({
+            "graph": name, "plan_job": job["name"], "plan_source": plan_sources[name],
+            "steps": config["steps"], "replicas": config["replicas"],
+            "seeds": ";".join(str(seed) for seed in job["seeds"]),
+            "optimizer": config["optimizer"], "learning_rate": config["learning_rate"],
+            "momentum": config["optimizer_kwargs"].get("momentum"),
+            "weight_decay": config["optimizer_kwargs"].get("weight_decay"),
+            "gradient_mode": config.get("gradient_mode", "autograd"),
+            "temperature_schedule": config["temperature_schedule"],
+            "gamma_schedule": config["gamma_schedule"],
+        })
+    _write_csv(family_folder / "remaining_39_settings.csv", settings)
+    print("Endpoint-only cases (39):", ", ".join(pending), flush=True)
+    print("G17 and G28 use their recorded hit-producing plans; all other cases use the latest selected plans.", flush=True)
+
+    for name in pending:
+        job = jobs_by_name[name]
+        graph = load_graph(name)
+        folder = family_folder / name
+        folder.mkdir(parents=True, exist_ok=True)
+        if _complete(folder):
+            saved = _read_json(folder / "configuration.json")
+            if (saved.get("plan_job") != job["name"] or
+                    saved.get("config") != job["config"] or
+                    saved.get("seed_bases") != [int(seed) for seed in job["seeds"]] or
+                    saved.get("instance_sha256") != sha256(graph.path) or
+                    saved.get("device") != str(runtime.device) or
+                    saved.get("dtype") != runtime.dtype_name):
+                raise RuntimeError(f"{name}: existing completed result uses different settings or graph; refusing to mix it")
+            print(f"gset/{name}: complete; skipped", flush=True)
+            continue
+        config = json.loads(json.dumps(job["config"]))
+        seeds = [int(seed) for seed in job["seeds"]]
+        endpoint_rows = []
+        for trial, base in enumerate(seeds):
+            seed = gset_derived_seed(base, name)
+            inputs = make_gset_inputs(graph, config, seed, runtime.device, runtime.dtype, "double")
+            synchronize(runtime.device)
+            started = time.perf_counter()
+            spins = _run_gset_auto(graph, config, inputs, runtime)
+            synchronize(runtime.device)
+            cuts = graph.score(spins)
+            winner = int(np.argmax(cuts))
+            endpoint_rows.append({
+                "graph": name, "topology": topology.get(name, "unknown"),
+                "trial": trial, "seed_base": base, "seed": seed,
+                "replicas": config["replicas"], "steps": config["steps"],
+                "target": graph.target, "best_cut": float(cuts[winner]),
+                "gap": float(graph.target - cuts[winner]), "winner": winner,
+                "target_hits": int(np.sum(cuts >= graph.target)),
+                "runtime_sec": time.perf_counter() - started,
+            })
+            print(f"gset/{name}: seed {trial + 1}/{len(seeds)}; best cut {cuts[winner]:g}", flush=True)
+        best = max(endpoint_rows, key=lambda row: row["best_cut"])
+        _write_csv(folder / "endpoints.csv", endpoint_rows)
+        _write_json(folder / "configuration.json", {
+            "graph": name, "topology": topology.get(name, "unknown"),
+            "instance_sha256": sha256(graph.path), "target": graph.target,
+            "plan_job": job["name"], "plan_source": plan_sources[name],
+            "solver": job["solver"], "config": config, "seed_bases": seeds,
+            "derived_seeds": [row["seed"] for row in endpoint_rows],
+            "device": str(runtime.device), "dtype": runtime.dtype_name,
+            "source_revision": runtime.revision, "trajectory_semantics": "endpoint-only",
+        })
+        (folder / "report.md").write_text(
+            f"# {name} QeFEM endpoint report\n\n"
+            f"- Graph type: `{topology.get(name, 'unknown')}`.\n"
+            f"- Reference cut: `{graph.target:g}`.\n"
+            f"- Best local cut: `{best['best_cut']:g}`; residual: `{best['gap']:g}`.\n"
+            f"- Selected plan: `{job['name']}` ({plan_sources[name]}).\n"
+            f"- Seeds: `{', '.join(str(seed) for seed in seeds)}`.\n"
+            "- This is an endpoint-only case; the 15 representative graphs retain full trajectories.\n"
+        )
+        _write_json(folder / "manifest.json", {
+            "status": "complete", "scope": "endpoint-only",
+            "source_revision": runtime.revision,
+            "completed_utc": datetime.now(timezone.utc).isoformat(),
+        })
+        print(f"gset/{name}: complete", flush=True)
+
+    rows = []
+    for name in GSET_ALL:
+        folder = family_folder / name
+        if not _complete(folder) or not (folder / "endpoints.csv").exists():
+            raise RuntimeError(f"{name}: missing canonical endpoint after fill")
+        rows.extend(pd.read_csv(folder / "endpoints.csv").to_dict("records"))
+    frame = pd.DataFrame(rows)
+    frame.to_csv(family_folder / "endpoints.csv", index=False)
+    bests = frame.groupby("graph", as_index=False).agg(
+        target=("target", "first"), best_cut=("best_cut", "max"), min_gap=("gap", "min")
+    )
+    bests.to_csv(family_folder / "summary.csv", index=False)
+    (family_folder / "report.md").write_text(
+        "# Complete G-set G1-G54 experiment\n\n"
+        f"Completed graphs: `{len(bests)}`.\n"
+        f"Reference cuts reached locally: `{int((bests.min_gap <= 0).sum())}/{len(bests)}`.\n"
+        f"Median residual: `{bests.min_gap.median():.6g}`.\n"
+        "Fifteen representative graphs include trajectories; the remaining 39 have endpoints only.\n"
+        "The historical accumulated 33/54 result is not a guarantee for this local device.\n"
+    )
     return frame
 
 
@@ -965,14 +1157,19 @@ def run_all(
     runtime: Runtime, *, overwrite: bool = False, smoke: bool = False,
     include_lqa: bool = True,
 ) -> dict[str, pd.DataFrame]:
-    """Run the complete paper suite. This is the notebook's one-button entry point."""
+    """Run the paper suite using the same G-set completion path as the notebook."""
+    if overwrite and not smoke:
+        raise ValueError("run_all preserves the 15 representative G-set trajectories; use overwrite=False")
     outputs = {
         "k2000": run_k2000(runtime, overwrite=overwrite, smoke=smoke, include_lqa=include_lqa),
         "wishart": run_planted_family("wishart", runtime, overwrite=overwrite, smoke=smoke,
                                        include_lqa=include_lqa),
         "chook": run_planted_family("chook", runtime, overwrite=overwrite, smoke=smoke,
                                      include_lqa=include_lqa),
-        "gset": run_gset(runtime, big=False, overwrite=overwrite, smoke=smoke),
+        "gset": (run_gset(runtime, big=False, overwrite=overwrite, smoke=True) if smoke else
+                 run_gset_remaining_endpoints(
+                     runtime, preserve_trajectories=GSET_REPRESENTATIVE_15,
+                 )),
         "gset_big": run_gset(runtime, big=True, overwrite=overwrite, smoke=smoke),
     }
     write_root_report(runtime)

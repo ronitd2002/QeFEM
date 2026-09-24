@@ -1,0 +1,2 @@
+graph,topology,trial,seed_base,seed,replicas,steps,target,best_cut,gap,winner,target_hits,runtime_sec
+G58,large-supplied,0,70000,1817154161,8192,1000,19293.0,19127.0,166.0,5791,0,21002.362892000005

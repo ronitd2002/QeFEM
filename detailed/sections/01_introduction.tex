@@ -1,0 +1,82 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Binary optimization asks for an assignment of finitely many decisions that
+minimizes a cost or maximizes a reward. The variables may describe the two
+sides of a graph cut, selected facilities, accepted constraints, or a spin
+configuration. A common mathematical representation is quadratic
+unconstrained binary optimization (QUBO); after an affine change of
+variables, the same objective is an Ising energy. The representation is
+general enough to encode many problems, but it does not remove their
+combinatorial difficulty: $N$ unrestricted binary variables have $2^N$
+possible assignments. MaxCut and general Ising optimization already contain
+NP-hard cases \citep{karp1972,barahona1982,lucas2014}.
+
+For MaxCut, the input is an undirected weighted graph $G=(V,E,w)$ and a
+feasible solution is a partition $S\subseteq V$ of its vertices. The problem
+is to find
+\begin{equation}
+ \max_{S\subseteq V}\; C(S),\qquad
+ C(S)=\sum_{\{i,j\}\in E}w_{ij}
+ \mathbf 1\{ |\{i,j\}\cap S|=1\}.
+ \label{eq:maxcut-statement}
+\end{equation}
+Equivalently, a binary spin $s_i\in\{-1,+1\}$ marks each vertex's side of
+the partition. In this paper, a reported MaxCut solution is such a binary
+partition, scored with the original edge weights; the continuous QeFEM
+state is the means of finding it.
+
+Many useful solvers therefore exchange exhaustive enumeration for a search
+over an easier auxiliary space. Simulated annealing explores binary states
+stochastically \citep{kirkpatrick1983}. The free-energy machine (\FEM)
+optimizes a factorized thermal distribution with gradients
+\citep{shen2025}. Local quantum annealing (\LQA) instead optimizes a pure
+product-state surrogate for a changing transverse-field Hamiltonian
+\citep{bowles2022}. Discrete simulated bifurcation (\dSB) updates classical
+position and momentum variables with a sign-dependent interaction
+\citep{goto2021dsbm}. These algorithms differ in objective, dynamics, and
+computational budget. Their common feature is that a continuous or
+population-based search eventually returns an ordinary binary assignment.
+
+\QeFEM{} places the search in a product of single-qubit mixed states. A
+local state has a longitudinal component, which records the expected binary
+decision; a transverse component, which couples to a driver; and an entropy,
+which resists premature polarization. The objective is the mean-field free
+energy of a transverse-field Ising model. We minimize it with classical
+tensor operations and independently initialized replicas. The word
+``quantum'' identifies the state family and the noncommuting driver in the
+surrogate Hamiltonian. It does not imply entanglement, physical quantum
+evolution, or quantum computational speedup.
+
+The point of a detailed derivation is to identify precisely what this
+relaxation can and cannot promise. The exact Gibbs state is generally
+intractable, so the product ansatz introduces a substantial approximation.
+The resulting free energy is nonconvex at low temperature. Annealing and
+replica search can find strong states, but neither follows an adiabatic
+theorem, and neither guarantees the optimal cut. Furthermore, the later
+G-set experiments use a deliberately modified, discrete-neighbour search
+direction. That update shares the state representation and final score with
+the smooth method, but it is not the exact gradient of the original free
+energy. Treating the two variants as identical would obscure both the
+mathematics and the evidence.
+
+The results require similar care. The main saved comparison consists of
+frozen \QeFEM{} and \LQA{} configurations on K2000, Wishart, and Chook
+instances. The G-set result combines historical attainment with a subsequent
+adaptive search and fresh-seed confirmation. A separate FEM notebook
+contains informative K2000 runs of \FEM{} and \dSB, but those runs are not
+paired with the saved \QeFEM{} experiment in compute, numerical platform,
+or seed protocol. We preserve these distinctions throughout rather than
+compressing unlike measurements into one apparent league table.
+
+This expanded manuscript is organized around four questions. First, how
+does a binary Ising objective lead to the \QeFEM{} free energy? Second, what
+do its stationary equations, gradients, and instability scale say about the
+search dynamics? Third, what was actually run, including optimizer settings,
+replica counts, seeds, and readout? Fourth, what do the stored endpoints
+establish, and where does the method still fall short? The figures are
+chosen to answer these questions directly: a winner trajectory and entropy
+trace expose the annealing dynamics; population scaling diagnoses the K2000
+plateau; instance-level curves show where planted error changes; and a
+gap-before/after plot displays which revisited G-set graphs improved and
+which supplied references were newly attained.

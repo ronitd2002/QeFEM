@@ -1,0 +1,44 @@
+{
+  "config": {
+    "coupling_scale": "rms",
+    "gamma_end_fraction": 0.5,
+    "gamma_max": 3,
+    "gamma_min": 0.0,
+    "gamma_power": 1.0,
+    "gamma_schedule": "lin",
+    "h_factor": 0.05,
+    "initialization": "cpu",
+    "learning_rate": 0.01,
+    "optimizer": "rmsprop",
+    "optimizer_kwargs": {
+      "alpha": 0.98,
+      "centered": false,
+      "eps": 1e-08,
+      "foreach": false,
+      "momentum": 0.91,
+      "weight_decay": 0.01
+    },
+    "replicas": 8192,
+    "steps": 1000,
+    "temperature_end_fraction": 1.0,
+    "temperature_max": 1.0,
+    "temperature_min": 0.0001,
+    "temperature_power": 0.5,
+    "temperature_schedule": "lin"
+  },
+  "derived_seeds": [
+    1817154161
+  ],
+  "device": "cpu",
+  "dtype": "float32",
+  "graph": "G58",
+  "instance_sha256": "1ea4ab92ac9f025eb3d1f578741e00ddf0f61f2432cd49ecfb9d87583ddb874e",
+  "plan_job": "G58_double_final0",
+  "seed_bases": [
+    70000
+  ],
+  "solver": "double",
+  "target": 19293.0,
+  "topology": "large-supplied",
+  "trajectory_semantics": "endpoint-only; one 8,192-replica seed"
+}

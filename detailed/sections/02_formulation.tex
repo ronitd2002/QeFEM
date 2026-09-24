@@ -1,0 +1,165 @@
+\section{From binary objectives to an annealed variational problem}
+\label{sec:formulation}
+
+\subsection{QUBO, Ising variables, and MaxCut}
+
+Let $\bm x\in\{0,1\}^{N}$ and let $Q=Q^{\mathsf T}$ be a real matrix. We
+write a QUBO as
+\begin{equation}
+ E_Q(\bm x)=\bm x^{\mathsf T}Q\bm x+c.
+ \label{eq:qubo}
+\end{equation}
+The symmetric convention is explicit: off-diagonal entries of $Q$ occur
+twice in the matrix product. Define $s_i=1-2x_i$, so that
+$x_i=(1-s_i)/2$ and $s_i\in\{-1,+1\}$. Direct substitution gives
+\begin{align}
+ E_Q(\bm s)
+ &=c+\frac14(\bm 1-\bm s)^{\mathsf T}
+                 Q(\bm 1-\bm s)\nonumber\\
+ &=c+\frac14\bm 1^{\mathsf T}Q\bm 1
+   -\frac12(Q\bm 1)^{\mathsf T}\bm s
+   +\frac14\bm s^{\mathsf T}Q\bm s.
+ \label{eq:qubo-expand}
+\end{align}
+Since $s_i^2=1$, the diagonal part of the last term is constant. With
+each unordered pair counted once,
+\begin{align}
+ E_I(\bm s)&=c_0+\sum_i h_i s_i+\sum_{i<j}K_{ij}s_i s_j,
+ \label{eq:ising-energy}\\
+ c_0&=c+\tfrac14\bm 1^{\mathsf T}Q\bm 1+\tfrac14\Tr Q,
+ \nonumber\\
+ h_i&=-\tfrac12(Q\bm 1)_i,
+ \quad K_{ij}=\tfrac12Q_{ij}\quad(i\ne j).
+ \label{eq:qubo-map}
+\end{align}
+The choice $s_i=2x_i-1$ reverses the sign of $h_i$ but is otherwise
+equivalent. Writing the affine map matters when results from two software
+packages are compared; a silent sign or factor-of-two change can alter a
+reported energy while leaving the spin vector unchanged.
+
+For the MaxCut problem in Eq.~\eqref{eq:maxcut-statement}, encode a
+partition by $s_i=+1$ on $S$ and $s_i=-1$ otherwise. The edge indicator
+then becomes $(1-s_i s_j)/2$, giving
+\begin{equation}
+ C(\bm s)=\sum_{\{i,j\}\in E}w_{ij}\frac{1-s_i s_j}{2}
+ =\frac{W-E_G(\bm s)}{2},
+ \label{eq:cut}
+\end{equation}
+where $W=\sum_{\{i,j\}\in E}w_{ij}$ and
+$E_G(\bm s)=\sum_{\{i,j\}\in E}w_{ij}s_i s_j$.
+This identity holds for signed weights as well as nonnegative ones. We
+use $E_G$ as the Ising energy to be minimized in the graph experiments.
+If $K$ is its symmetric zero-diagonal coupling matrix, then
+$E_G(\bm s)=\tfrac12\bm s^{\mathsf T}K\bm s$.
+For K2000, the final cut is always recomputed with the original unscaled
+edge weights, not inferred from the value of the relaxed objective.
+
+\subsection{A transverse-field Gibbs target}
+
+Replace each classical spin $s_i$ by the Pauli operator $Z_i$ to form the
+diagonal problem Hamiltonian
+\begin{equation}
+ H_P=c_0 I+\sum_i h_i Z_i+\sum_{i<j}K_{ij}Z_iZ_j.
+ \label{eq:hp}
+\end{equation}
+Its computational-basis eigenvalues are precisely the Ising costs. We
+introduce a transverse driver with strength $\Gamma\geq0$,
+\begin{equation}
+ H_{\Gamma}=H_P-\Gamma\sum_i X_i.
+ \label{eq:hgamma}
+\end{equation}
+At a temperature $T>0$, the corresponding exact Gibbs state is
+\begin{equation}
+ \sigma_{T,\Gamma}
+ =\frac{e^{-H_{\Gamma}/T}}{Z_{T,\Gamma}},
+ \qquad Z_{T,\Gamma}=\Tr e^{-H_{\Gamma}/T}.
+ \label{eq:gibbs}
+\end{equation}
+The state has a $2^N\times2^N$ matrix representation and is never formed
+by the algorithm. Its role is variational: it identifies an objective whose
+terms have a controlled thermodynamic origin. The schedule changes this
+objective over optimization steps. It is not a physical time evolution of
+Eq.~\eqref{eq:hgamma}.
+
+For any density matrix $\rho$, the quantum relative entropy is
+$\KL(\rho\Vert\sigma)=\Tr[\rho(\log\rho-\log\sigma)]$. Since
+$\log\sigma_{T,\Gamma}=-H_\Gamma/T-\log Z_{T,\Gamma}$,
+\begin{align}
+ T\KL(\rho\Vert\sigma_{T,\Gamma})
+ &=\Tr(\rho H_\Gamma)-T S(\rho)
+   +T\log Z_{T,\Gamma}\nonumber\\
+ &=\mathcal F_{T,\Gamma}(\rho)-F^*_{T,\Gamma},
+ \label{eq:klidentity}
+\end{align}
+where $S(\rho)=-\Tr(\rho\log\rho)$,
+$\mathcal F_{T,\Gamma}(\rho)=\Tr(\rho H_\Gamma)-T S(\rho)$,
+and $F^*_{T,\Gamma}=-T\log Z_{T,\Gamma}$. Positivity of relative entropy
+implies $\mathcal F_{T,\Gamma}(\rho)\geq F^*_{T,\Gamma}$, with equality at
+the exact Gibbs state. Restricting $\rho$ to an inexpensive family converts
+this identity into a tractable variational approximation
+\citep{nielsen2010,wainwright2008}. It does not make the restricted minimum
+equal to the exact free energy.
+
+\subsection{Product states and the Bloch disk}
+
+\QeFEM{} restricts the trial state to
+\begin{equation}
+ \begin{aligned}
+ \rho&=\bigotimes_{i=1}^{N}\rho_i,\\
+ \rho_i&=\tfrac12\bigl(I+m_{x,i}X_i+m_{z,i}Z_i\bigr),\\
+ &m_{x,i}^2+m_{z,i}^2\leq1.
+ \end{aligned}
+ \label{eq:ansatz}
+\end{equation}
+No intersite entanglement or classical correlation is represented in this
+family. The restriction to the $x$--$z$ Bloch disk is sufficient for
+minimizing the product-state free energy of the real Hamiltonian
+Eq.~\eqref{eq:hgamma}. Indeed, $H_\Gamma$ contains no $Y_i$ expectation,
+while the local entropy decreases as the Bloch length increases. Given any
+site with a nonzero $y$ component, setting that component to zero preserves
+the energy and weakly increases the entropy. It therefore cannot increase
+$\mathcal F_{T,\Gamma}$. The two-coordinate ansatz is a consequence of the
+chosen Hamiltonian, not an arbitrary truncation of a needed $y$ degree of
+freedom.
+
+Let $R_i=\sqrt{m_{x,i}^2+m_{z,i}^2}$. The eigenvalues of $\rho_i$ are
+$(1\pm R_i)/2$, so its entropy is the binary entropy of those eigenvalues:
+\begin{equation}
+ S_i= -\frac{1+R_i}{2}\log\frac{1+R_i}{2}
+      -\frac{1-R_i}{2}\log\frac{1-R_i}{2}.
+ \label{eq:entropy}
+\end{equation}
+The full entropy is additive, $S(\rho)=\sum_iS_i$. Its maximum is
+$N\log2$, attained at the maximally mixed product state. In contrast,
+$S_i\to0$ as $R_i\to1$.
+
+For a product state,
+$\langle Z_i\rangle=m_{z,i}$ and
+$\langle Z_iZ_j\rangle=m_{z,i}m_{z,j}$ for $i\ne j$.
+Consequently the restricted free energy is
+\begin{equation}
+ \boxed{\begin{aligned}
+ \mathcal F_{T,\Gamma}(\bm m_x,\bm m_z)
+ &=c_0+\sum_i h_i m_{z,i}
+   +\sum_{i<j}K_{ij}m_{z,i}m_{z,j}\\
+ &\quad-\Gamma\sum_i m_{x,i}-T\sum_iS_i.
+ \end{aligned}}
+ \label{eq:qefemF}
+\end{equation}
+This is the smooth \QeFEM{} objective. The first line is the exact energy
+expectation \emph{within the product ansatz}; factorization of pair
+expectations is the approximation to the exact Gibbs state. The transverse
+term rewards positive $x$ polarization, and the entropy term favors local
+mixture at high temperature. The constant $c_0$ affects reported energies
+but not the variational minimizer.
+
+The longitudinal component also has a direct probabilistic interpretation.
+A $Z_i$ measurement returns $s_i\in\{-1,+1\}$ with probability
+\begin{equation}
+ q_i(s_i)=\frac{1+s_i m_{z,i}}{2},\qquad
+ q(\bm s)=\prod_iq_i(s_i).
+ \label{eq:measure}
+\end{equation}
+This distribution is a useful interpretation of the state; the benchmark
+solver does not sample it for final scoring. It uses deterministic sign
+readout after optimization, as specified in Sec.~\ref{sec:algorithm}.

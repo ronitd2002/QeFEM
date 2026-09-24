@@ -1,0 +1,154 @@
+\section{Detailed derivations and limiting cases}
+\label{app:derivations}
+
+\subsection{From quantum relative entropy to a product free energy}
+
+The Gibbs target of Eq.~\eqref{eq:gibbs} is full rank for $T>0$. Starting
+from the definition of relative entropy,
+\begin{align}
+ \KL(\rho\Vert\sigma_{T,\Gamma})
+ &=\Tr(\rho\log\rho)-\Tr(\rho\log\sigma_{T,\Gamma})\nonumber\\
+ &=-S(\rho)+\frac{\Tr(\rho H_\Gamma)}{T}
+                 +\log Z_{T,\Gamma}.
+ \label{eq:app-kl}
+\end{align}
+Multiplication by $T$ immediately gives Eq.~\eqref{eq:klidentity}.
+The omitted constant in an optimization is $-T\log Z$, which depends
+on $(T,\Gamma)$ but not on the variational fields. Omitting it from
+gradient calculations is valid even though its value changes along the
+schedule. The exact Gibbs minimum is outside the factorized family in
+general, so the restricted minimum only bounds the exact free energy
+from above.
+
+For a product state $\rho=\bigotimes_i\rho_i$, the logarithm separates
+as $\log\rho=\sum_i I\otimes\cdots\otimes\log\rho_i\otimes\cdots\otimes I$,
+giving $S(\rho)=\sum_iS(\rho_i)$. For $i\ne j$,
+\begin{equation}
+ \Tr[\rho(Z_iZ_j)]
+ =\Tr(\rho_iZ_i)\Tr(\rho_jZ_j)=m_{z,i}m_{z,j}.
+ \label{eq:app-factor}
+\end{equation}
+The transverse expectation is $\Tr(\rho X_i)=m_{x,i}$. These identities
+give Eq.~\eqref{eq:qefemF} without sampling any spin configuration.
+
+\subsection{The local state, entropy, and field map}
+
+Let $A_i=u_iX_i+v_iZ_i$. The Pauli anticommutation relation gives
+$A_i^2=(u_i^2+v_i^2)I=r_i^2I$. Separating even and odd terms of the
+exponential series,
+\begin{equation}
+ e^{A_i}=\cosh r_i\,I+
+           \frac{\sinh r_i}{r_i}A_i.
+ \label{eq:app-exp}
+\end{equation}
+Dividing by $\Tr e^{A_i}=2\cosh r_i$ produces
+$\rho_i=\tfrac12[I+(\tanh r_i/r_i)A_i]$. Thus the Bloch radius is
+$R_i=\tanh r_i$, and the eigenvalues are $(1\pm R_i)/2$.
+Substituting those eigenvalues into $-\Tr\rho_i\log\rho_i$ yields
+Eq.~\eqref{eq:entropy}. Alternatively, from
+$\log\rho_i=A_i-\log(2\cosh r_i)I$,
+\begin{align}
+ S_i&=-\Tr(\rho_i A_i)+\log(2\cosh r_i)\nonumber\\
+    &=\log(2\cosh r_i)-r_i\tanh r_i,
+ \label{eq:app-entropy}
+\end{align}
+because $\Tr(\rho_i A_i)=r_iR_i$.
+
+The apparent singularity at $r=0$ in $g(r)=\tanh r/r$ is removable.
+Expanding $\tanh r$ around zero gives
+\begin{equation}
+ g(r)=1-\frac{r^2}{3}+\frac{2r^4}{15}+O(r^6),
+ \qquad
+ \operatorname{sech}^2r=1-r^2+\frac{2r^4}{3}+O(r^6).
+ \label{eq:app-series}
+\end{equation}
+These limits justify a smooth origin and the numerical safe branch in
+the implementation.
+
+\subsection{Gradient and Hessian in physical and field coordinates}
+
+Writing $\bm m=(m_x,m_z)$ and $R=\|\bm m\|$, the scalar derivative of
+Eq.~\eqref{eq:entropy} is
+\begin{equation}
+ \frac{dS}{dR}
+ =-\frac12\log\frac{1+R}{1-R}
+ =-\operatorname{arctanh}R.
+ \label{eq:app-ds}
+\end{equation}
+As $\nabla_{\bm m}R=\bm m/R$ away from the origin,
+$\nabla_{\bm m}(-TS)=T\operatorname{arctanh}R\,\bm m/R$.
+Adding the problem and driver gradients gives
+Eqs.~\eqref{eq:gradx}--\eqref{eq:gradz}. To move to unconstrained
+fields, differentiate $\bm m=g(r)\bm a$:
+\begin{equation}
+ d\bm m=g(r)d\bm a+
+   g'(r)\bm a\frac{\bm a^{\mathsf T}d\bm a}{r}.
+ \label{eq:app-dm}
+\end{equation}
+This is Eq.~\eqref{eq:jacobian}. In the radial direction
+$\bm a/r$, the Jacobian eigenvalue is
+$g(r)+rg'(r)=d(\tanh r)/dr=\operatorname{sech}^2r$;
+in every tangential direction it is $g(r)$. Since
+$J\bm a=\operatorname{sech}^2r\,\bm a$,
+the chain rule applied to Eq.~\eqref{eq:physicalgrad} gives
+Eq.~\eqref{eq:fieldgrad}. No derivative of a sign function appears in
+this exact smooth calculation.
+
+For completeness, the physical-coordinate Hessian of the negative
+single-site entropy has the radial and tangential eigenvalues
+\begin{equation}
+ \lambda_{\rm rad}=\frac{1}{1-R^2},
+ \qquad
+ \lambda_{\rm tan}=\frac{\operatorname{arctanh}R}{R}.
+ \label{eq:app-entropy-hessian}
+\end{equation}
+They follow by differentiating the radial vector field
+$\nabla(-S)=(\operatorname{arctanh}R/R)\bm m$. Since
+$\operatorname{arctanh}R\geq R$ for $0\leq R<1$, both are at least one.
+The graph contribution to the Hessian acts only on longitudinal
+coordinates and equals $K$. Thus $T> -\lambda_{\min}(K)$ is a sufficient
+condition for strict convexity of the physical-coordinate objective.
+This does not imply convexity in the nonlinear field coordinates
+$\bm a$; reparameterization may change curvature even while preserving
+finite-field stationary points.
+
+\subsection{Longitudinal instability and spectral schedule inversion}
+
+When $h=0$ and $\bm m_z=0$, the stationary local $x$ component is
+$m_x=\tanh(\Gamma/T)$. The graph term has quadratic expansion
+$\tfrac12\bm m_z^{\mathsf T}K\bm m_z$. Holding the stationary transverse
+component fixed for a longitudinal perturbation, the local entropy
+curvature contributes
+\begin{equation}
+ T\frac{\operatorname{arctanh}m_x}{m_x}
+ =\frac{\Gamma}{\tanh(\Gamma/T)}=q(T,\Gamma).
+ \label{eq:app-q}
+\end{equation}
+The mixed $x$--$z$ Hessian vanishes at $m_z=0$ by symmetry, so
+Eq.~\eqref{eq:stability} is also the relevant longitudinal block of
+the full Hessian. If the lowest eigenvalue of $K$ is $-\kappa$, the
+quadratic form first loses positive definiteness at $q=\kappa$.
+Setting $\rho=\Gamma/T$ gives
+$q=T\rho/\tanh\rho$. Algebraic inversion yields
+$T=q\tanh\rho/\rho$ and $\Gamma=q\tanh\rho$, as used in the
+graph-specific G-set schedule. The stability calculation assumes zero
+local fields and concerns a local stationary solution; it is not a
+global approximation guarantee.
+
+\subsection{Quadratization example and its penalty requirement}
+
+The formal reach of a QUBO solver extends to higher-order binary terms
+when auxiliary variables are introduced, although that extension is not
+benchmarked here. For $x,y,z\in\{0,1\}$, the penalty
+\begin{equation}
+ P\bigl(xy-2xz-2yz+3z\bigr),\qquad P>0,
+ \label{eq:app-quadratize}
+\end{equation}
+is zero when $z=xy$ and strictly positive for the other assignments.
+For example, $(x,y)=(0,0)$ gives penalty $3Pz$;
+$(1,0)$ or $(0,1)$ gives $Pz$; and $(1,1)$ gives $P(1-z)$.
+To preserve the optimum of a surrounding objective, $P$ must exceed
+the maximum possible improvement gained by violating the intended
+relation. Repeated substitutions can increase variable count and
+coefficient spread. Consequently QUBO encodability alone is not a
+performance claim for a new application.

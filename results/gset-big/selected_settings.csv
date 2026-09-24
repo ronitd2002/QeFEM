@@ -1,0 +1,18 @@
+graph,plan_job,protocol,steps,replicas,seed_bases,optimizer,learning_rate,momentum,weight_decay,gradient_mode,temperature_schedule,gamma_schedule
+G55,G55_double_final0,preserved-complete,1000,8192,70000;70001;70002;70003;70004,rmsprop,0.3,0.91,0.01,autograd,lin,lin
+G56,G56_double_final0,one-seed endpoint,1000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G57,G57_double_final0,one-seed endpoint,8000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G58,G58_double_final0,one-seed endpoint,1000,8192,70000,rmsprop,0.01,0.91,0.01,autograd,lin,lin
+G59,G59_double_final0,one-seed endpoint,4000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G60,G60_double_final0,one-seed endpoint,1000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G61,G61_double_final0,one-seed endpoint,1000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G62,G62_double_final0,one-seed endpoint,1000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G63,G63_double_final0,one-seed endpoint,1000,8192,70000,rmsprop,0.3,0.91,0.01,autograd,lin,lin
+G64,G64_double_final0,one-seed endpoint,1000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G65,G65_double_final0,one-seed endpoint,8000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G66,G66_double_final0,one-seed endpoint,8000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G67,G67_double_final0,one-seed endpoint,8000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G70,G70_double_final0,one-seed endpoint,1000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G72,G72_double_final0,one-seed endpoint,8000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G77,G77_double_final0,one-seed endpoint,8000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin
+G81,G81_double_final0,one-seed endpoint,1000,8192,70000,rmsprop,0.1,0.91,0.01,autograd,lin,lin

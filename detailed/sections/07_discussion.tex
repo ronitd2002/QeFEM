@@ -1,0 +1,131 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What the experiments establish}
+
+The evidence identifies a useful algorithmic property: the same
+factorized mixed-state construction produces competitive binary
+assignments on sparse and dense MaxCut graphs and on two structurally
+different planted Ising families. On the saved planted files, the
+\QeFEM{} configuration has lower error than the declared \LQA{}
+configuration in every instance, and it returns exact planted energies
+in seven Wishart and 60 Chook trial populations. The G-set continuation
+adds ten previously unattained reference cuts, eight of them recovered
+with frozen settings on fresh seeds. These are concrete strengths, not
+claims of quantum hardware advantage or universal optimality.
+
+The dynamics help explain why those strengths are plausible. The
+product-state expectation is cheap enough for a large replica batch;
+high-temperature entropy gives a smooth starting regime; the driver
+offers an additional local direction during part of the search; and
+cooling lets the longitudinal coupling landscape determine the final
+binary choices. Spectral scaling provides a principled coordinate for
+the onset of longitudinal instability on zero-field graphs. None of
+these mechanisms guarantees the best basin, but each gives a testable
+design variable rather than an opaque postprocessing step.
+
+The K2000 result imposes an equally clear boundary. A best cut of 33,293
+is strong relative to the saved 33,249 \LQA{} cut, yet it remains 44
+below the stored 33,337 reference. The best cut stops improving in the
+recorded nested population sweep after 2,048 replicas. A larger
+population alone therefore has no demonstrated route to reference
+attainment in these data. The available \FEM{}/\dSB{} notebook outputs
+reach 33,337 under their own protocols. The correct conclusion is that
+the present \QeFEM{} K2000 configuration does not match those attained
+cuts; the evidence does not establish that the state family is incapable
+of matching them under a different schedule or update. Conversely,
+theoretical inclusion of a classical endpoint does not prove a finite
+\QeFEM{} run must outperform tuned \FEM{} dynamics. The endpoint
+proposition in Sec.~\ref{sec:theory} makes that distinction exact.
+
+\subsection{Why this can matter outside the present benchmarks}
+
+Many scheduling, allocation, routing, and design tasks admit QUBO or
+Ising formulations \citep{lucas2014}. Once such a formulation is
+available, the variational state, entropy evaluation, readout, and
+batch optimizer in \QeFEM{} do not depend on the application's name;
+the objective enters through its fields and pair couplings. That
+separation makes the method attractive for an optimization platform
+that must support many binary models on accelerator hardware. The
+experiments here support the \emph{technical possibility} of scaling a
+single implementation from sparse G-set graphs to a 2,000-spin dense
+graph and to planted suites with known targets. They do not yet measure
+business value, deployment reliability, constraint satisfaction after
+QUBO penalty tuning, or total energy and monetary cost on an industrial
+workload. Those questions require application-specific experiments.
+
+The distinction also shapes how performance should be communicated.
+A result such as 60/110 planted-energy hits conveys something different
+from an average percent error; together they show how often the method
+fully solves a fixed file and how far the remaining runs miss. The
+G-set count is compelling as an attainment inventory, but its adaptive
+search budget must accompany it. On K2000, a 0.132\% reference-relative
+residual sounds small, but the absolute 44-unit gap is the more direct
+optimization fact on a signed-weight graph. Clear plots and complete
+captions can present a strong algorithm without converting unlike
+protocols into an unsupported ranking.
+
+\subsection{Limitations and decisive next experiments}
+
+The product ansatz omits intersite correlations and entanglement.
+Low-temperature spin-glass landscapes can have many metastable basins,
+and the optimizer follows a finite, schedule-dependent path rather than
+the instantaneous variational minimum. The manual discrete-neighbour
+update can further improve attainable cuts, but it is a surrogate
+vector field, not the exact free-energy gradient. No general convergence
+or approximation-ratio theorem is claimed for the complete practical
+solver. In particular, an observed local spectral instability does not
+imply global MaxCut optimality.
+
+Several limitations are experimental. The plotted G-set total
+accumulates adaptive tuning, historical runs, and fresh-seed
+confirmation. K2000 has one graph and five canonical \QeFEM{} seeds;
+the plotted planted series has one fixed file at each parameter.
+Family-level hyperparameters were selected after exploration of related
+data. The saved \LQA{} comparison evolves one state per trial, whereas
+\QeFEM{} evolves 8,192, and its planted settings include a local driver
+choice. No wall-clock-normalized or candidate-normalized ranking is
+possible from these endpoints alone. Even the FEM/dSB K2000 notebook
+is a contextual source rather than a matched three-way protocol; its
+saved output predates a later device-selection code change, so the
+exact numbers should be freshly reproduced before they become a formal
+new head-to-head figure.
+
+A decisive K2000 study would freeze graph input, precision, device,
+scoring code, and a predeclared total-work budget across \QeFEM{},
+\FEM{}, and \dSB{}. It would vary the \QeFEM{} schedule and the
+G-set-derived manual-discrete update under separate, recorded
+hyperparameter searches; then it would evaluate selected settings on
+fresh seeds without moving the goalposts. Reporting per-replica cut
+distributions, hit counts, time-to-target, and memory would determine
+whether the remaining gap is a schedule issue, a basin-coverage issue,
+or a more structural limitation. The current paper does not include
+such a trial, and it does not extrapolate the G-set gains to K2000.
+
+\section{Conclusion}
+
+\QeFEM{} gives a mathematically explicit route from a binary Ising
+objective to a differentiable, annealed search over local mixed states.
+The quantum relative entropy supplies the free-energy principle; the
+product ansatz makes it computationally tractable; the Bloch-field map
+guarantees valid local states; and binary readout returns ordinary
+feasible solutions. The theory locates a graph-dependent longitudinal
+instability scale and shows exactly where the later discrete-neighbour
+search departs from the smooth gradient.
+
+Under the saved protocols, the method reaches 33 of 54 G-set reference
+cuts across accumulated searches, improves the declared \LQA{}
+comparison on every fixed Wishart and Chook instance, and gives a
+33,293 K2000 cut while leaving a 44-unit reference gap. These results
+make a coherent case for \QeFEM{} as a flexible classical optimization
+framework with strong solution quality on several large binary
+landscapes. They also identify the next falsifiable question: whether
+the new search dynamics and carefully matched resources can close the
+dense K2000 gap without relying on ever larger replica populations.
+
+\section*{Author contributions}
+R.D. conceived and developed the core \QeFEM{} method, implemented the
+original solver, designed the analysis workflow, and drafted the
+manuscript. F.P. contributed the nonlinear reparameterization,
+optimizer and schedule refinement, and benchmark testing. Both authors
+interpreted the results and take responsibility for the final text.

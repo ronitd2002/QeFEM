@@ -1,0 +1,86 @@
+\documentclass[
+  aps,
+  prx,
+  reprint,
+  amsmath,
+  amssymb,
+  groupedaddress,
+  nofootinbib,
+  floatfix,
+  longbibliography
+]{revtex4-2}
+
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{amsthm,mathtools,bm}
+\usepackage{booktabs,array}
+\usepackage{graphicx}
+\usepackage{capt-of}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,allcolors=blue!55!black]{hyperref}
+
+\setlength{\textfloatsep}{9pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\renewcommand{\arraystretch}{1.08}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+\newcommand{\QeFEM}{QeFEM}
+\newcommand{\LQA}{LQA}
+\newcommand{\FEM}{FEM}
+\newcommand{\dSB}{dSB}
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\sgn}{\operatorname{sign}}
+\newcommand{\KL}{D_{\mathrm{KL}}}
+\newcommand{\eps}{\varepsilon}
+
+\begin{document}
+
+\title{A Quantum-Inspired Annealing-Based Algorithm to solve Large-Scale Binary Optimization Problems}
+\author{Ronit Dutta}
+\affiliation{Singapore University of Technology and Design}
+\author{Feng Pan}
+\affiliation{Singapore University of Technology and Design}
+\date{23 September 2026}
+
+\begin{abstract}
+Combinatorial optimization arises throughout science and industry, yet
+finding good solutions becomes difficult as problem sizes grow and more complex. 
+Many of these combinatorial problems (COPs), usually defined on graphs, can be 
+written as quadratic unconstrained binary optimization (QUBO) hamiltonians, 
+giving a common starting point for optimal configuration search. We introduce the 
+quantum-enhanced free-energy machine (\QeFEM), a classical, quantum-inspired method 
+that combines ideas from statistical physics, variational optimization, and annealing. 
+It seeks to find the probabilistic thermal distribution of the graph vertices by mini
+Gradient-based updates then guide
+many candidate solutions in parallel toward feasible binary assignments.
+We derive the method and analyze its search dynamics, then evaluate it on
+MaxCut and planted Ising problems with different sizes and structures.
+Across these demanding benchmarks, \QeFEM{} finds high-quality solutions
+with a common solver framework. Recorded inputs, seeds, and settings
+support repeatable experiments and controlled comparisons across CPUs
+and accelerators.
+\end{abstract}
+
+\maketitle
+
+\input{sections/01_introduction}
+\input{sections/02_formulation}
+\input{sections/03_theory}
+\input{sections/04_algorithm}
+\input{sections/05_experiments}
+\input{sections/06_results}
+\input{sections/07_discussion}
+
+\clearpage
+\bibliographystyle{apsrev4-2}
+\bibliography{references}
+
+\onecolumngrid
+\appendix
+\input{sections/A_derivations}
+\input{sections/B_protocols}
+\input{sections/C_full_results}
+
+\end{document}

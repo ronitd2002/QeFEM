@@ -1,0 +1,106 @@
+\section{Complete numerical tables}
+\label{app:fullresults}
+
+\subsection{Nested K2000 population sweep}
+
+Table~\ref{tab:k2000-pop-all} prints the values underlying
+Fig.~\ref{fig:k2000-population}. The same five seed labels are used at
+each population size, and smaller populations are prefixes of the
+8,192 initial fields. The target is 33,337 and the saved \LQA{} mean
+and best are both 33,249.
+
+\begin{center}
+\begin{minipage}{\textwidth}
+\small
+\captionof{table}{K2000 QeFEM endpoint cuts over five seeds at each nested
+population size. The best-gap column is relative to the stored 33,337
+reference.}
+\label{tab:k2000-pop-all}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}rrrr}
+\toprule
+replicas & mean cut & best cut & best gap\\
+\midrule
+128 & 33,252.0 & 33,255 & 82\\
+512 & 33,254.6 & 33,255 & 82\\
+1,024 & 33,260.8 & 33,274 & 63\\
+2,048 & 33,272.6 & 33,293 & 44\\
+4,096 & 33,277.8 & 33,293 & 44\\
+8,192 & 33,281.2 & 33,293 & 44\\
+\bottomrule
+\end{tabular*}
+\end{minipage}
+\end{center}
+
+\subsection{All fixed Wishart files}
+
+\begin{center}
+\begin{minipage}{\textwidth}
+\small
+\captionof{table}{Wishart results by requested $\alpha$. Each method has five
+trial populations per fixed file. $\overline{\Delta E}$ is mean excess
+over the supplied planted energy; $\overline\eps$ is mean relative
+energy error. Hits count trial populations with an exact endpoint.}
+\label{tab:wishart-all}
+\centering
+\begin{tabular}{crrrrrr}
+\toprule
+& \multicolumn{2}{c}{mean $\Delta E$}
+& \multicolumn{2}{c}{mean $\eps$ (\%)}
+& \multicolumn{2}{c}{exact hits}\\
+$\alpha$ & QeFEM & LQA & QeFEM & LQA & QeFEM & LQA\\
+\midrule
+\input{tables/wishart_instances.tex}
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\subsection{All fixed Chook tile-planted files}
+
+\begin{center}
+\begin{minipage}{\textwidth}
+\small
+\captionof{table}{Chook results by requested tile-mixture parameter $p(C_3)$.
+Each method has ten trial populations per fixed file. Notation follows
+Table~\ref{tab:wishart-all}.}
+\label{tab:chook-all}
+\centering
+\begin{tabular}{crrrrrr}
+\toprule
+& \multicolumn{2}{c}{mean $\Delta E$}
+& \multicolumn{2}{c}{mean $\eps$ (\%)}
+& \multicolumn{2}{c}{exact hits}\\
+$p(C_3)$ & QeFEM & LQA & QeFEM & LQA & QeFEM & LQA\\
+\midrule
+\input{tables/chook_instances.tex}
+\end{tabular}
+\end{minipage}
+\end{center}
+
+\subsection{Every G1--G54 retained cut}
+
+The status labels below have strict provenance meanings. ``Prior'' means
+the supplied reference had already been attained before the later
+31-graph search. ``Fresh'' means a new match was recovered by the
+frozen selected setting on fresh evaluation seeds. ``Search'' means a
+new match was seen during discovery or promotion but not recovered
+on its fresh seeds. ``Open'' means no saved result attained the
+supplied reference. These are evidence labels, not intrinsic classes
+of graph difficulty.
+
+\begin{center}
+\begin{minipage}{\textwidth}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\captionof{table}{Complete retained G1--G54 results from the accumulated search.
+Targets are the supplied benchmark references, not certificates of
+global optimality. The two blocks continue the same table.}
+\label{tab:gset-all}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrrl@{\hspace{18pt}}lrrrl}
+\toprule
+graph & ref. & best & gap & evidence &
+graph & ref. & best & gap & evidence\\
+\midrule
+\input{tables/gset_54_paired.tex}
+\end{tabular*}
+\end{minipage}
+\end{center}

@@ -1,0 +1,127 @@
+\section{Protocol, source, and comparator details}
+\label{app:protocols}
+
+\subsection{Exact saved-plan provenance}
+
+The canonical K2000, Wishart, and Chook configurations are read from
+the following frozen plan files in the companion \texttt{qefem\_prof}
+repository:
+\begingroup\footnotesize
+\begin{itemize}[leftmargin=2em]
+ \item \path{benchmarks/k2000/results/portable_accuracy_recheck/final_k2000/plan.json};
+ \item \path{benchmarks/wishart/results/portable_accuracy_recheck/final_wishart/plan.json};
+ \item \path{benchmarks/chunk/results/portable_accuracy_recheck/final_chook_a/plan.json}
+       and \path{final_chook_b/plan.json}.
+\end{itemize}
+\endgroup
+The paper workspace retains the parsed configurations and endpoint rows
+under \path{Paper/results/}. It records the Python, NumPy, and PyTorch
+versions, the numerical device, dtype, input hashes, and the declared
+source revision in \path{results/experiment_environment.json} and the
+case-level configuration and manifest files. The frozen K2000
+\QeFEM{} job was selected from \path{scale_k2000/momentum_fast}.
+That selection predates the later G-set manual-discrete search. No
+G-set spectral or discrete-neighbour setting was silently transferred
+to the plotted K2000 results.
+
+Each K2000 seed is obtained from the declared base seed 50,000 by the
+repository's deterministic derivation function. The resulting five
+seed values are listed in Table~\ref{tab:k2000trials}; the LQA rows
+share those labels. Wishart and Chook likewise retain their exact seed
+arrays in each instance's \path{configuration.json}. A seed controls
+initial pseudo-random fields, not the quality of the optimum itself.
+Different algorithms map the same integer to different state shapes,
+so a shared label is useful for auditing but not a proof of paired
+random trajectories.
+
+\subsection{The G-set search variants}
+
+The smooth G-set stage used a product-state objective with exact
+automatic differentiation. The later remaining-gap search used both
+an exact manual evaluation of Eq.~\eqref{eq:fieldgrad} and the
+surrogate direction of Eq.~\eqref{eq:discretenbr}. Its spectral schedule
+computes $\kappa$ from the smallest eigenvalue of the normalized graph
+coupling matrix, constructs a decreasing $q/\kappa$ curve, and chooses a
+decreasing ratio $\rho=\Gamma/T$. Equation~\eqref{eq:spectralinvert}
+then generates the temperature and driver arrays. Most transferred
+discrete-update proposals used SGD with momentum 0.95 and weight decay
+0.01; exact proposals retained their previous optimizer. This is a
+graph-specific search, not one fixed set of hyperparameters across
+all G-set graphs.
+
+For the discrete mode, $\lambda_t$ can increase linearly between
+declared start and end fractions or switch abruptly when those
+fractions are equal. The implementation changes only the neighbor
+magnetizations inside $K\widetilde{\bm m}_z$ and leaves the local
+Bloch Jacobian and entropy contribution continuous. The final
+configuration is always decoded and rescored against the original
+graph. The full controller, per-graph plan, proposal registry, and
+rescore audit are saved under
+\path{benchmarks/Gset/results/remaining_discrete/}; its completed
+analysis is the source of the 54-instance table in
+Appendix~\ref{app:fullresults}.
+
+\subsection{How the FEM and dSB context was handled}
+
+The accompanying FEM repository contains a K2000 notebook with saved
+cell output for separate \FEM{} and \dSB{} sweeps. The current notebook
+source sets 1,000 replicas for each method and nominal update budgets
+from 100 through 100,000. Its saved output reports the best cuts in
+Table~\ref{tab:archived-context}. These values are included so the
+reader can see that the current \QeFEM{} gap is a real competitive
+limitation, not because the notebook is a controlled three-way trial.
+The notebook itself states that its saved outputs predate a later
+device-selection code update; rerunning is needed to align saved
+values with the current MPS/CPU implementation. The published \FEM{}
+paper reports its own K2000 protocol and figure
+\citep{shen2025}; its figure should not be numerically identified with
+this local notebook's later output.
+
+\begin{table}[ht]
+\centering\small
+\caption{Selected best cuts printed by the archived FEM K2000 notebook,
+with 1,000 FEM or dSB trajectories at each independent update budget.
+These are contextual outputs, not matched comparisons with the separate
+8,192-replica, five-trial QeFEM CPU evaluation. The stored reference is
+33,337.}
+\label{tab:archived-context}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}rrr}
+\toprule
+updates & archived FEM best & archived dSB best\\
+\midrule
+100 & 33,133 & 32,993\\
+200 & 33,214 & 33,155\\
+400 & 33,275 & 33,248\\
+600 & 33,296 & 33,285\\
+800 & 33,296 & 33,272\\
+1,000 & 33,306 & 33,304\\
+2,000 & 33,332 & 33,333\\
+4,000 & 33,337 & 33,337\\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+The FEM notebook uses RMSprop-like momentum settings
+$\eta=0.03$, $\alpha=0.56$, momentum $0.63$, weight decay $0.013$,
+$T_{\max}=1.16$, $T_{\min}=6\times10^{-5}$, and a graph-dependent
+normalization in its classical FEM implementation. Its dSB implementation
+uses step size $\Delta t=1.25$ and a sign-dependent coupling in a
+position--momentum update. These are genuine algorithmic and protocol
+differences. Figure~\ref{fig:k2000-population} consequently compares
+only the frozen QeFEM population study with its explicitly declared
+saved LQA baseline; it does not mix a FEM/dSB sweep into one curve.
+
+\subsection{Figure data and rebuild command}
+
+All four figures in this manuscript are generated by
+\path{detailed/make_figures.py}. The script performs read-only loads of
+saved endpoint, trajectory, and G-set analysis files; it executes no
+optimizer. It writes vector PDF and PNG copies to
+\path{detailed/figures/}, exact plot-ready aggregates to
+\path{detailed/plot_data/}, and result-table rows to
+\path{detailed/tables/}. The script asserts the expected K2000 five-seed
+population counts and G-set 54-instance status total before plotting.
+The figure captions identify whether they show a five-seed endpoint
+summary, one coherent trajectory, fixed planted-instance means, or an
+adaptive attainment inventory. Those distinctions are part of the
+figure data, not small-print exceptions.

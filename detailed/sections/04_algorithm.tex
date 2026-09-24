@@ -1,0 +1,145 @@
+\section{Numerical algorithm and what a trajectory means}
+\label{sec:algorithm}
+
+\subsection{Coupling scale and the implemented objective}
+
+All evaluated instances have zero local fields. Let $K^{\rm raw}$ be the
+symmetric, zero-diagonal Ising coupling matrix. For a graph with edges
+listed once, the implementation defines
+\begin{equation}
+ \begin{aligned}
+ c_K&=\sqrt{\frac{1}{N}\sum_{i,j}(K^{\rm raw}_{ij})^2}\\
+    &=\sqrt{\frac{2}{N}\sum_{\{i,j\}\in E}w_{ij}^2},
+ \qquad K=K^{\rm raw}/c_K.
+ \end{aligned}
+ \label{eq:rmscoupling}
+\end{equation}
+It optimizes Eq.~\eqref{eq:qefemF} with $K$, then scores binary spins
+against $K^{\rm raw}$. The numerical values of $T$ and $\Gamma$ must
+therefore be read in units of the normalized interaction scale. If one
+multiplies the normalized free energy by $c_K$, the equivalent physical
+temperature and transverse field are $c_KT$ and $c_K\Gamma$. Coupling
+normalization is more than a harmless change of printed units if the
+temperature and driver schedules are left fixed while $c_K$ changes.
+
+The selected scale is 44.71018 for K2000, 0.316598 for the saved Wishart
+instances, and 3.162278 for the saved Chook instances. The values and
+their source configurations are retained with the result folders. G-set
+uses graph-specific normalization, and the later spectral schedule also
+uses the lowest eigenvalue of the normalized graph matrix.
+
+\subsection{Initialization, schedules, and optimization}
+
+A trial starts with $B$ independent replicas. For replica $b$ and site $i$,
+the two local fields are initialized as
+\begin{equation}
+ a^{(0)}_{b,i,d}=h_{\rm init}\,\xi_{b,i,d},
+ \qquad \xi_{b,i,d}\sim\mathcal N(0,1),\quad d\in\{x,z\}.
+ \label{eq:init}
+\end{equation}
+An isolated CPU random generator produces the stored initialization for
+each seed before it is transferred to the compute device. This improves
+replayability; it does not make distinct devices bitwise equivalent.
+The K2000 $h_{\rm init}$ is 0.1. A trial is one full population of $B$
+replicas, not one replica.
+
+For $L$ optimizer updates, define $\tau_t=t/(L-1)$ for
+$t=0,\ldots,L-1$. The simple frozen schedules have
+\begin{align}
+ T_t&=T_{\min}+(T_{\max}-T_{\min})(1-\tau_t),
+ \label{eq:tempcurve}\\
+ \Gamma_t&=\Gamma_{\min}+
+ (\Gamma_{\max}-\Gamma_{\min})
+ \left[1-\min\!\left(\frac{\tau_t}{f_\Gamma},1\right)\right].
+ \label{eq:gammacurve}
+\end{align}
+The code passes the reciprocal $\beta_t=1/T_t$ to the free-energy
+kernel. For K2000 and Wishart, $f_\Gamma=0.5$, so the transverse field
+vanishes halfway and the remaining updates optimize with $\Gamma=0$.
+For Chook, $f_\Gamma=1$. The G-set runs also use quadratic cooling or the
+spectral construction of Eq.~\eqref{eq:spectralinvert}, according to their
+graph-level plans. A schedule is applied to the objective at each update;
+it is not a simulated measurement history or Schr\"odinger evolution.
+
+For the frozen K2000, Wishart, and Chook runs, automatic differentiation
+computes Eq.~\eqref{eq:fieldgrad}, and PyTorch RMSprop updates all field
+coordinates. The recorded implementation uses ordinary \emph{coupled}
+weight decay, so its elementwise updates can be written as
+\begin{align}
+ \widetilde g_t&=\nabla_{\bm a}\mathcal F_t+\lambda_{\rm wd}\bm a_t,
+ &v_t&=\alpha v_{t-1}+(1-\alpha)\widetilde g_t^{\odot2},
+ \label{eq:rmsprop1}\\
+ b_t&=\mu b_{t-1}+\frac{\widetilde g_t}{\sqrt{v_t}+\eps_{\rm opt}},
+ &\bm a_{t+1}&=\bm a_t-\eta b_t.
+ \label{eq:rmsprop2}
+\end{align}
+These equations describe the non-centered, non-Nesterov mode used in the
+saved plan. The operations are elementwise in the optimizer state, except
+for the matrix product in the gradient. Here
+$\eps_{\rm opt}=10^{-8}$. Weight decay changes the numerical trajectory
+and thus must be reported with the learning rate and momentum.
+Because each replica has separate coordinates, the batch is a parallel
+collection of independent optimizations under the same graph and schedule.
+The implementation backpropagates a sum of per-replica free energies; it
+does not divide the gradient by $B$.
+
+For clarity, the complete frozen-run logic is:
+\begin{enumerate}[label=\arabic*.,leftmargin=2em]
+ \item Load and validate the graph or planted Ising instance; form normalized
+       couplings $K=K^{\rm raw}/c_K$.
+ \item For each declared seed, construct $B\times N\times2$ Gaussian
+       initial fields and arrays $\{T_t,\Gamma_t\}_{t=0}^{L-1}$.
+ \item For every update, map fields through Eq.~\eqref{eq:fieldmap},
+       evaluate Eq.~\eqref{eq:qefemF}, and apply Eq.~\eqref{eq:rmsprop1}
+       --\eqref{eq:rmsprop2} or the declared alternative optimizer.
+ \item After exactly $L$ updates, decode all $B$ final states and rescore
+       each binary vector with the raw instance objective.
+ \item Record the best final replica for that seed; aggregate these trial
+       endpoints using the declared mean, best, gap, and exact-hit metrics.
+\end{enumerate}
+The K2000 population experiment uses nested prefixes of the same initialized
+8,192-replica population for each seed. This controls the random population
+when $B$ changes: a 128-replica run uses exactly the first 128 initial
+states of that seed's 8,192-replica run, and similarly for larger sizes.
+It does not imply that their later trajectories remain prefixes, since
+floating-point batching and optimizer execution can differ.
+
+\subsection{Binary readout and scoring}
+
+The implemented final readout is
+\begin{equation}
+ \widehat s_{b,i}=\begin{cases}+1,&m^{(L)}_{z,b,i}>0,\\-1,&m^{(L)}_{z,b,i}\leq0.
+ \end{cases}
+ \label{eq:readout}
+\end{equation}
+This is equivalent to rounding the probability
+$p_{b,i}=(1+m_{z,b,i})/2$ as used by the solver, including the tie at
+$p=1/2$. It yields a feasible binary vector for every replica. For
+MaxCut, we evaluate Eq.~\eqref{eq:cut}; for planted Ising instances we
+evaluate $E_I(\widehat{\bm s}_b)$ and compare it with the supplied planted
+energy. No local improvement, bit flipping, coordinate splicing, or
+selection of an intermediate iterate is part of the frozen endpoint
+protocol.
+
+This distinction is crucial for interpreting trajectory figures. The
+stored K2000 trace first selects the final best replica of the best
+endpoint trial, then replays that \emph{same replica} from its initial
+field to the final update. The curve is not the maximum cut over the
+population at every step. Its temporary decreases are possible and do
+not contradict final best-of-population selection. The entropy trace is
+likewise the sum of site entropies for that coherent replica, divided by
+$N$ when plotted.
+
+\subsection{Arithmetic and storage}
+
+For a dense graph, one longitudinal field evaluation is a batched
+matrix product $\bm m_zK$, costing $O(BN^2)$ arithmetic, with
+$O(N^2+BN)$ persistent storage before optimizer buffers and temporary
+autograd tensors. An edge-list or sparse matrix contraction can reduce
+arithmetic to $O(B|E|+BN)$ and graph storage to $O(|E|)$, subject to device
+support and implementation details. K2000 is complete, so $|E|=N(N-1)/2$
+and the dense formulation is natural. Large replica counts improve the
+number of basins explored but increase memory and arithmetic nearly
+linearly in $B$. Hence solution quality at $B=8{,}192$ cannot be read as
+the quality of a single cheap trajectory, and unmatched wall-clock
+measurements across methods are not evidence of a speedup.

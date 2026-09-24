@@ -1,0 +1,224 @@
+\section{Stationary structure and annealing dynamics}
+\label{sec:theory}
+
+\subsection{Unconstrained fields and exact local derivatives}
+
+Directly optimizing $(m_x,m_z)$ would require projection back into the
+Bloch disk. Instead, each site has unconstrained real fields
+$\bm a_i=(u_i,v_i)^{\mathsf T}$ and radius
+$r_i=\sqrt{u_i^2+v_i^2}$. Define
+\begin{equation}
+ \begin{aligned}
+ \bm m_i&=(m_{x,i},m_{z,i})^{\mathsf T}
+ =g(r_i)\bm a_i,\\
+ g(r)&=\begin{cases}\tanh r/r,&r>0,\\1,&r=0.\end{cases}
+ \end{aligned}
+ \label{eq:fieldmap}
+\end{equation}
+Then $R_i=\tanh r_i<1$ for finite fields, so positivity of every local
+density matrix is automatic. More explicitly,
+\begin{equation}
+ \rho_i=\frac{e^{u_iX_i+v_iZ_i}}{2\cosh r_i},
+ \label{eq:localexp}
+\end{equation}
+because $(u_iX_i+v_iZ_i)^2=r_i^2I$.
+Equation~\eqref{eq:fieldmap} is therefore an exponential-family
+parameterization of the open Bloch disk. At $r_i=0$, it is interpreted by
+continuity rather than evaluated as $0/0$.
+
+The local entropy is especially stable in these coordinates:
+\begin{equation}
+ S_i=\log(2\cosh r_i)-r_i\tanh r_i.
+ \label{eq:fieldentropy}
+\end{equation}
+The implementation evaluates the log-cosh term by a stable log-sum-exp
+operation to avoid overflow. Differentiating
+Eq.~\eqref{eq:fieldmap} gives the symmetric Jacobian
+\begin{equation}
+ \begin{aligned}
+ J_i&=\frac{\partial\bm m_i}{\partial\bm a_i}
+ =g(r_i)I+\frac{g'(r_i)}{r_i}\bm a_i\bm a_i^{\mathsf T},\\
+ g'(r)&=\frac{r\,\operatorname{sech}^2r-\tanh r}{r^2}.
+ \end{aligned}
+ \label{eq:jacobian}
+\end{equation}
+Its tangential eigenvalue is $\tanh r/r$, and its radial eigenvalue is
+$\operatorname{sech}^2r$. Both are positive at finite $r$; both tend to one
+as $r\to0$. The radial eigenvalue becomes small when the local state is
+nearly pure, an explicit reason that field-space optimization can slow near
+the boundary even while the physical-coordinate gradient remains large.
+
+Define the instantaneous longitudinal effective field
+\begin{equation}
+ H_i(\bm m_z)=h_i+\sum_{j\ne i}K_{ij}m_{z,j}.
+ \label{eq:effectivefield}
+\end{equation}
+Because $dS_i/dR_i=-\operatorname{arctanh}R_i$,
+\begin{align}
+ \frac{\partial\mathcal F}{\partial m_{x,i}}
+ &=-\Gamma+T\frac{\operatorname{arctanh}R_i}{R_i}m_{x,i},
+ \label{eq:gradx}\\
+ \frac{\partial\mathcal F}{\partial m_{z,i}}
+ &=H_i+T\frac{\operatorname{arctanh}R_i}{R_i}m_{z,i}.
+ \label{eq:gradz}
+\end{align}
+The quotient tends to one as $R_i\to0$. Since
+$\operatorname{arctanh}R_i=r_i$ and
+$\bm m_i/R_i=\bm a_i/r_i$, the two physical-coordinate
+gradients form the remarkably simple vector
+\begin{equation}
+ \nabla_{\bm m_i}\mathcal F
+ =\binom{-\Gamma}{H_i}+T\bm a_i.
+ \label{eq:physicalgrad}
+\end{equation}
+Thus the exact gradient seen by the optimizer is
+\begin{equation}
+ \boxed{\nabla_{\bm a_i}\mathcal F
+ =J_i\binom{-\Gamma}{H_i}
+  +T\operatorname{sech}^2(r_i)\bm a_i.}
+ \label{eq:fieldgrad}
+\end{equation}
+The second term follows from $J_i\bm a_i=\operatorname{sech}^2(r_i)\bm a_i$.
+This expression agrees with automatic differentiation of
+Eq.~\eqref{eq:qefemF}; Appendix~\ref{app:derivations} shows the chain rule
+in detail. Exact manual evaluation is an implementation choice, whereas
+changing $H_i$ changes the vector field being optimized.
+
+\subsection{Self-consistency and the classical endpoint}
+
+At any finite $r_i$, $J_i$ is invertible. A stationary point therefore
+satisfies $\nabla_{\bm m_i}\mathcal F=0$, giving
+\begin{equation}
+ u_i=\frac{\Gamma}{T},
+ \qquad v_i=-\frac{H_i(\bm m_z)}{T}.
+ \label{eq:stationaryfields}
+\end{equation}
+Substitution into the Bloch map yields the product-state self-consistency
+equation
+\begin{equation}
+ m_{z,i}=-\frac{H_i}{\sqrt{\Gamma^2+H_i^2}}
+     \tanh\!\left(\frac{\sqrt{\Gamma^2+H_i^2}}{T}\right),
+ \label{eq:selfconsistency}
+\end{equation}
+with the continuous zero-field limit understood. The transverse component is
+\begin{equation}
+ m_{x,i}=\frac{\Gamma}{\sqrt{\Gamma^2+H_i^2}}
+ \tanh\!\left(\frac{\sqrt{\Gamma^2+H_i^2}}{T}\right).
+ \label{eq:selfconsistency-x}
+\end{equation}
+These are coupled equations: changing one site's $m_z$ changes the fields
+of its neighbors. Their multiple solutions at low temperature are one
+manifestation of the nonconvex landscape. The optimizer does not solve
+Eq.~\eqref{eq:selfconsistency} by fixed-point iteration; its annealed
+gradient updates need not be at equilibrium at any intermediate step.
+
+If $\Gamma=0$ while $T>0$, Eq.~\eqref{eq:selfconsistency} reduces to the
+classical mean-field equation
+\begin{equation}
+ m_{z,i}=-\tanh\!\left(\frac{H_i}{T}\right),
+ \qquad m_{x,i}=0.
+ \label{eq:classicalmf}
+\end{equation}
+At $T\to0$ and $\Gamma\to0$, strongly nonzero local fields drive
+$|m_z|\to1$. This limiting statement is local and conditional. Finite
+optimizer runs can retain uncertain sites or become trapped in suboptimal
+sign patterns. If $T\to0$ at fixed $\Gamma>0$, the transverse component
+need not disappear; removing the driver is essential to the intended
+classical endpoint.
+
+\begin{proposition}[Relation to the classical FEM family]
+At $\Gamma=0$, the minimum of Eq.~\eqref{eq:qefemF} over the product-state
+Bloch disks equals its minimum over the subfamily $m_{x,i}=0$ for every
+site. Hence the transverse state coordinate does not improve the optimal
+\emph{static} classical mean-field free energy at the endpoint.
+\end{proposition}
+\begin{proof}
+For fixed $m_{z,i}$, the problem energy is independent of $m_{x,i}$.
+Setting $m_{x,i}=0$ decreases $R_i$ and weakly increases the entropy
+$S_i$, because $S_i$ is decreasing in $R_i$. At $\Gamma=0$, the driver term
+vanishes. The change therefore weakly decreases the free energy at every
+site. Applying it to an arbitrary product state proves the claim.
+\end{proof}
+
+This fact resolves an apparent paradox in method comparisons. A transverse
+coordinate can change the \emph{path} through which a basin is entered, but
+it does not imply a theorem that \QeFEM{} must defeat an optimized classical
+\FEM{} run on every instance. The practical algorithms also use different
+parameterizations, schedules, normalizations, and optimizers. Their endpoint
+quality is an empirical question.
+
+\subsection{A curvature scale for the onset of polarization}
+
+The zero-field case $h_i=0$ admits a particularly informative local
+analysis. The unpolarized longitudinal state $\bm m_z=0$ has
+$m_x=\tanh(\Gamma/T)$ at a stationary point. Let $\lambda_{\min}(K)$
+be the smallest eigenvalue of the symmetric coupling matrix, and write
+$\kappa=-\lambda_{\min}(K)$ when this eigenvalue is negative. The
+longitudinal Hessian at that state is
+\begin{equation}
+ \nabla^2_{\bm m_z}\mathcal F\big|_{\bm m_z=0}
+ =K+q(T,\Gamma)I,
+ \qquad
+ q(T,\Gamma)=\frac{\Gamma}{\tanh(\Gamma/T)},
+ \label{eq:stability}
+\end{equation}
+where $q(T,0)=T$ by continuity. To see the local term, use
+$\operatorname{arctanh}R/R$ in Eq.~\eqref{eq:gradz} at
+$R=\tanh(\Gamma/T)$: it becomes
+$(\Gamma/T)/\tanh(\Gamma/T)$ and is multiplied by $T$.
+The first unstable longitudinal mode appears when
+$q(T,\Gamma)$ falls through $\kappa$. If $q>\kappa$, all longitudinal
+eigenmodes have positive curvature at this stationary state; if
+$q<\kappa$, at least one has negative curvature.
+
+This criterion explains the later G-set spectral schedules. They
+parameterize a desired $q$ relative to the graph-specific $\kappa$, rather
+than cooling solely according to an absolute temperature that has a
+different meaning on each weighted graph. Defining
+$\rho=\Gamma/T$, one can recover physical schedule values from $q$ and
+$\rho$:
+\begin{equation}
+ T=q\frac{\tanh\rho}{\rho},
+ \qquad \Gamma=q\tanh\rho,
+ \label{eq:spectralinvert}
+\end{equation}
+with $T=q$ when $\rho=0$. A schedule that lowers $q/\kappa$ from above
+one to below one moves through the local polarization threshold. This
+is a statement about curvature around one stationary state, not a proof
+that the ensuing trajectory finds the ground state.
+
+At sufficiently high temperature there is also a useful global statement.
+The Hessian of $-S_i$ in physical Bloch coordinates has radial eigenvalue
+$1/(1-R_i^2)$ and tangential eigenvalue
+$\operatorname{arctanh}(R_i)/R_i$; both are at least one. Thus the entropy
+contributes at least $T I$ to the physical-coordinate Hessian. If
+$T>\kappa$, Eq.~\eqref{eq:qefemF} is strictly convex over the product of
+open Bloch disks, even in the presence of the linear transverse driver.
+The local condition $q>\kappa$ may hold at lower $T$ and is weaker than
+this sufficient global-convexity bound. These results clarify why an
+initial high-temperature phase can be easy to optimize and why a later
+cooling phase can acquire many competing basins.
+
+\subsection{What the discrete-neighbour continuation changes}
+
+The current smooth K2000, Wishart, and Chook runs use the exact gradient of
+Eq.~\eqref{eq:qefemF}. A later G-set search additionally studies a
+surrogate direction. At update $t$, define
+\begin{equation}
+ \widetilde{\bm m}_z^{(t)}
+ =(1-\lambda_t)\bm m_z^{(t)}
+   +\lambda_t\sgn(\bm m_z^{(t)}),
+ \qquad 0\leq\lambda_t\leq1.
+ \label{eq:discretenbr}
+\end{equation}
+The term $K\bm m_z$ in the longitudinal field of
+Eq.~\eqref{eq:fieldgrad} is replaced by
+$K\widetilde{\bm m}_z^{(t)}$; the local Bloch Jacobian, transverse term,
+and entropy derivative remain continuous. At $\lambda_t=0$ this is the
+exact smooth gradient. A gradual schedule or a hard switch can increase
+$\lambda_t$ during the run. When $\lambda_t>0$, the resulting vector is
+generally \emph{not} the gradient of the original free energy, so
+monotone descent of Eq.~\eqref{eq:qefemF} is not promised. Final binary
+assignments are nevertheless scored with the original couplings.
+The G-set results that use this update must therefore be described as a
+distinct search variant. The frozen K2000 experiment has not applied it.
